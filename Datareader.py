@@ -21,7 +21,5 @@ def reader(filename):
                 xVals = np.append(xVals, float(datlist[index][2]) * 10**9)
                 Voltage = np.append(Voltage, float(datlist[index][5]) * 10**3)
 
-
-    print("Hello")
     return(xVals, Voltage)
          
