@@ -15,7 +15,6 @@ def reader(filename):
         data = csv.reader(file, dialect=dial)
         for row in data:
             datlist.append(row)
-            print("long")
 
         for index in range(0, len(datlist), 100):
             if datlist[index][5] != "-nan":
