@@ -1,19 +1,43 @@
 import Datareader as dr
-import csv
-import matplotlib.pyplot as plt
 import numpy as np
 import numpy.random as rand
+import h5py
+import matplotlib.pyplot as plt
 
-def thermal(bins, stdev):
-    noise = np.random.normal(0, stdev, bins)
-    return noise
+NUM_SIMS = 1
 
-def afterpulseProb():
-    print("hello")
+#**************************************************************************************
+# read in and store the data from csv called 'londat.csf'
 
 xvals, voltage = dr.reader("londat.csv")
 
-voltage = voltage + thermal(len(voltage), 2)
-plt.plot(xvals, voltage)
-plt.show()
+#**************************************************************************************
+# h5py takes numpy arrays as input so first create arrays from the data lists
+
+xdata = []
+ydata = []
+xdata = np.array(xvals)
+ydata = np.array(voltage)
+
+#**************************************************************************************
+# make the data file and fill it with data : )
+
+dataFile = h5py.File('data.h5', 'w')
+dataFile.create_dataset('xdata', data = xdata)
+dataFile.create_dataset('ydata', data = ydata)
+dataFile.close()
+
+#**************************************************************************************
+# open the file and read the data back out
+
+readFile = h5py.File('data.h5', 'r')
+readX = readFile.get('xdata')
+readY = readFile.get('ydata')
+readX = np.array(readX)
+readY = np.array(readY)
+readFile.close()
+
+print(readX)
+
+#**************************************************************************************
 
