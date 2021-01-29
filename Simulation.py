@@ -20,7 +20,7 @@ print(xdata)
 #**************************************************************************************
 # make the data file and fill it with data : )
 
-dataFile = h5py.File('data.h5', 'w')
+dataFile = h5py.File('outputdata\data.h5', 'w')
 dataFile.create_dataset('xdata', data = xdata)
 dataFile.create_dataset('ydata', data = ydata)
 dataFile.close()
