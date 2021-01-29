@@ -4,7 +4,7 @@ import numpy.random as rand
 import h5py
 import matplotlib.pyplot as plt
 
-NUM_SIMS = 1
+deadTime = 20
 
 #**************************************************************************************
 # read in and store the data from csv called 'londat.csf'
@@ -25,13 +25,19 @@ def randNoise(bins, stdev):
 #**************************************************************************************
 # Afterpulsing
 def afterpulsing(ydata, ypulse):
-    if rand.rand() > 0.4:
-        print("pulse")
-        position = rand.normal(100, 50, 1)
-        pos = int(position[0])
-        print(pos)
-        for i in range(pos, len(ydata)):
-            ypulse[i] = ypulse[i] + ydata[(i - pos)]
+    A = 1
+    LAMBDA = 2
+    for j in range(1, len(xdata) - 1):
+        pulseProb = (A * ((xdata[j] + 1) ** (-LAMBDA)))
+        if rand.rand() > 1 - pulseProb:
+            print("pulse")
+            print (pulseProb)
+            position = xdata[j]
+            pos = j
+            print(pos, position)
+            if position > deadTime:
+                for i in range(pos, len(ydata)):
+                    ypulse[i] = ypulse[i] + ydata[(i - pos)]
 
 afterpulsing(ydata, ypulse)
 ypulse += randNoise(len(ydata), 2)
@@ -50,5 +56,6 @@ plt.show()
 
 #**************************************************************************************
 # function for adding random noise to indicidula data points
+
 
 
