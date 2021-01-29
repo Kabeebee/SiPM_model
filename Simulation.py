@@ -28,7 +28,7 @@ dataFile.close()
 #**************************************************************************************
 # open the file and read the data back out
 
-readFile = h5py.File('Outputdata\data.h5', 'r')
+readFile = h5py.File('outputdata\data.h5', 'r')
 readX = readFile.get('xdata')
 readY = readFile.get('ydata')
 readX = np.array(readX)
