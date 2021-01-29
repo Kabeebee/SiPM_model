@@ -8,16 +8,14 @@ NUM_SIMS = 1
 
 #**************************************************************************************
 # read in and store the data from csv called 'londat.csf'
+xdata = np.array([])
+ydata = np.array([])
 
-xvals, voltage = dr.reader("londat.csv")
+xdata, ydata = dr.reader("londat.csv")
 
 #**************************************************************************************
 # h5py takes numpy arrays as input so first create arrays from the data lists
-
-xdata = []
-ydata = []
-xdata = np.array(xvals)
-ydata = np.array(voltage)
+print(xdata)
 
 #**************************************************************************************
 # make the data file and fill it with data : )
@@ -30,7 +28,7 @@ dataFile.close()
 #**************************************************************************************
 # open the file and read the data back out
 
-readFile = h5py.File('data.h5', 'r')
+readFile = h5py.File('Outputdata\data.h5', 'r')
 readX = readFile.get('xdata')
 readY = readFile.get('ydata')
 readX = np.array(readX)
