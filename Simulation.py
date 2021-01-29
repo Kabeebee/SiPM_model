@@ -12,6 +12,18 @@ xdata = np.array([])
 ydata = np.array([])
 xdata, ydata = dr.reader("londat.csv")
 
+#**************************************************************************************
+# add random fluctuations to data
+
+def randNoise(bins, stdev):
+    noise = rand.normal(0, stdev, bins)
+    return noise
+
+ydata += randNoise(len(ydata), 2)
+
+#**************************************************************************************
+# add afterpulsing
+
 
 
 #**************************************************************************************
@@ -23,7 +35,12 @@ dataFile.create_dataset('ydata', data = ydata)
 dataFile.close()
 
 print(len(xdata))
-plt.plot(xdata[:1000], ydata[:1000])
+plt.plot(xdata, ydata)
 plt.show()
+
+
+
+#**************************************************************************************
+# function for adding random noise to indicidula data points
 
 
