@@ -22,8 +22,6 @@ def randNoise(bins, stdev):
     noise = rand.normal(0, stdev, bins)
     return noise
 
-
-
 #**************************************************************************************
 # Afterpulsing
 def afterpulsing(ydata, ypulse):
@@ -37,6 +35,7 @@ def afterpulsing(ydata, ypulse):
 
 afterpulsing(ydata, ypulse)
 ypulse += randNoise(len(ydata), 2)
+
 #**************************************************************************************
 # make the data file and fill it with data : )
 
@@ -48,8 +47,6 @@ dataFile.close()
 print(len(xdata))
 plt.plot(xdata, ypulse)
 plt.show()
-
-
 
 #**************************************************************************************
 # function for adding random noise to indicidula data points
