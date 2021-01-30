@@ -38,11 +38,11 @@ ypulse += randNoise(len(ydata), 2)
 
 #**************************************************************************************
 # make the data file and fill it with data : )
-
-dataFile = h5py.File('data.h5', 'w')
-dataFile.create_dataset('xdata', data = xdata)
-dataFile.create_dataset('ypulse', data = ypulse)
-dataFile.close()
+def saveData():
+    dataFile = h5py.File('data.h5', 'w')
+    dataFile.create_dataset('xdata', data = xdata)
+    dataFile.create_dataset('ypulse', data = ypulse)
+    dataFile.close()
 
 print(len(xdata))
 plt.plot(xdata, ypulse)
