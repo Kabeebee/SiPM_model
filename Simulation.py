@@ -34,8 +34,9 @@ def afterpulsing(ydata, spadPulse):
             position = xdata[j]
             pos = j
             if position > deadTime:
+                scale = rand.rand()
                 for i in range(pos, len(ydata)):
-                    spadPulse[i] = spadPulse[i] + ydata[(i - pos)/(ydata[(i - pos)*rand.rand()]]
+                    spadPulse[i] = spadPulse[i] + ydata[(i - pos)]
 
 
 #**************************************************************************************
