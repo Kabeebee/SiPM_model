@@ -5,6 +5,7 @@ import h5py
 import matplotlib.pyplot as plt
 
 deadTime = 20
+NUMSPADS = 1
 
 #**************************************************************************************
 # read in and store the data from csv called 'londat.csf'
@@ -51,14 +52,13 @@ def saveData():
 # Add together multiple SPad PUlses to simulate a Sipm
 # look at making the spad firing distrobution more sophisticated
 
-for index in range(0, 25): 
+for index in range(0, NUMSPADS): 
     if rand.rand() > 0.5:
         spadPulse = np.array([])
         spadPulse = np.append(spadPulse, ydata)
 
         afterpulsing(ydata, spadPulse)
         spadPulse += randNoise(len(ydata), 2)
-        print(len(SiPMPulse))
 
         if len(SiPMPulse) == 0:
             SiPMPulse = np.append(SiPMPulse, spadPulse)
@@ -67,6 +67,5 @@ for index in range(0, 25):
             SiPMPulse += spadPulse
 
 
-print(len(xdata))
 plt.plot(xdata, SiPMPulse)
 plt.show()
