@@ -16,7 +16,7 @@ def reader(filename):
         for row in data:
             datlist.append(row)
 
-        for index in range(0, len(datlist), 100):
+        for index in range(0, len(datlist), 1000):
             if datlist[index][5] != "-nan":
                 xVals = np.append(xVals, float(datlist[index][2]) * 10**9)
                 Voltage = np.append(Voltage, float(datlist[index][5]) * 10**3)
