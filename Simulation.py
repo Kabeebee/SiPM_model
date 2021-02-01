@@ -5,7 +5,7 @@ import h5py
 import matplotlib.pyplot as plt
 
 deadTime = 20
-NUMSPADS = 1
+NUMSPADS = 25
 
 #**************************************************************************************
 # read in and store the data from csv called 'londat.csf'
@@ -35,7 +35,7 @@ def afterpulsing(ydata, spadPulse):
             pos = j
             if position > deadTime:
                 for i in range(pos, len(ydata)):
-                    spadPulse[i] = spadPulse[i] + ydata[(i - pos)]
+                    spadPulse[i] = spadPulse[i] + ydata[(i - pos)/(ydata[(i - pos)*rand.rand()]]
 
 
 #**************************************************************************************
@@ -63,8 +63,8 @@ for index in range(0, NUMSPADS):
         if len(SiPMPulse) == 0:
             SiPMPulse = np.append(SiPMPulse, spadPulse)
         
-        else:
-            SiPMPulse += spadPulse
+        #else:
+            #SiPMPulse += spadPulse
 
 
 plt.plot(xdata, SiPMPulse)
