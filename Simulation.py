@@ -58,7 +58,6 @@ for index in range(0, 25):
 
         afterpulsing(ydata, spadPulse)
         spadPulse += randNoise(len(ydata), 2)
-        print(len(SiPMPulse))
 
         if len(SiPMPulse) == 0:
             SiPMPulse = np.append(SiPMPulse, spadPulse)
