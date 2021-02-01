@@ -53,7 +53,7 @@ def saveData():
 # Add together multiple SPad PUlses to simulate a Sipm
 # look at making the spad firing distrobution more sophisticated
 
-for index in range(0, NUMSPADS): 
+for index in range(0, 1): 
     if rand.rand() > 0.5:
         spadPulse = np.array([])
         spadPulse = np.append(spadPulse, ydata)
