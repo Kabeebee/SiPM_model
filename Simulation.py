@@ -12,8 +12,8 @@ xdata = np.array([])
 ydata = np.array([])
 xdata, ydata = dr.reader("londat.csv")
 
-ypulse = np.array([])
-ypulse = np.append(ypulse, ydata)
+SiPMPulse = np.array([])
+
 
 #**************************************************************************************
 # add random fluctuations to data
@@ -24,38 +24,49 @@ def randNoise(bins, stdev):
 
 #**************************************************************************************
 # Afterpulsing
-def afterpulsing(ydata, ypulse):
+def afterpulsing(ydata, spadPulse):
     A = 1
     LAMBDA = 2
     for j in range(1, len(xdata) - 1):
         pulseProb = (A * ((xdata[j] + 1) ** (-LAMBDA)))
         if rand.rand() > 1 - pulseProb:
-            print("pulse")
-            print (pulseProb)
             position = xdata[j]
             pos = j
-            print(pos, position)
             if position > deadTime:
                 for i in range(pos, len(ydata)):
-                    ypulse[i] = ypulse[i] + ydata[(i - pos)]
+                    spadPulse[i] = spadPulse[i] + ydata[(i - pos)]
 
-afterpulsing(ydata, ypulse)
-ypulse += randNoise(len(ydata), 2)
 
 #**************************************************************************************
 # make the data file and fill it with data : )
 def saveData():
     dataFile = h5py.File('data.h5', 'w')
     dataFile.create_dataset('xdata', data = xdata)
-    dataFile.create_dataset('ypulse', data = ypulse)
+    dataFile.create_dataset('ypulse', data = spadPulse)
     dataFile.close()
 
-print(len(xdata))
-plt.plot(xdata, ypulse)
-plt.show()
+
 
 #**************************************************************************************
-# function for adding random noise to indicidula data points
+# Add together multiple SPad PUlses to simulate a Sipm
+# look at making the spad firing distrobution more sophisticated
+
+for index in range(0, 25): 
+    if rand.rand() > 0.5:
+        spadPulse = np.array([])
+        spadPulse = np.append(spadPulse, ydata)
+
+        afterpulsing(ydata, spadPulse)
+        spadPulse += randNoise(len(ydata), 2)
+        print(len(SiPMPulse))
+
+        if len(SiPMPulse) == 0:
+            SiPMPulse = np.append(SiPMPulse, spadPulse)
+        
+        else:
+            SiPMPulse += spadPulse
 
 
-
+print(len(xdata))
+plt.plot(xdata, SiPMPulse)
+plt.show()
