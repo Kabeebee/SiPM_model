@@ -12,9 +12,10 @@ recoveryTime = 200
 def main():
     counter = 0
     fig, ax = plt.subplots()
-     xdata = np.array([])
+    xdata = np.array([])
     ydata = np.array([])
     xdata, ydata = dr.reader("londat.csv")
+
     while counter < NUMSIMS:
        
         xdata = np.arange(200)
@@ -66,7 +67,7 @@ def afterpulsing(ydata, spadPulse, xdata):
 
 #**************************************************************************************
 # make the data file and fill it with data : )
-def saveData(iteration):
+def saveData(iteration, xdata,  spadPulse):
     dataFile = h5py.File('data.h5', 'w')
     dataFile.create_dataset('xdata', data = xdata)
     dataFile.create_dataset('ypulse', data = spadPulse)
