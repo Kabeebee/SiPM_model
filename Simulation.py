@@ -12,10 +12,11 @@ recoveryTime = 200
 def main():
     counter = 0
     fig, ax = plt.subplots()
+     xdata = np.array([])
+    ydata = np.array([])
+    xdata, ydata = dr.reader("londat.csv")
     while counter < NUMSIMS:
-        xdata = np.array([])
-        ydata = np.array([])
-        xdata, ydata = dr.reader("londat.csv")
+       
         xdata = np.arange(200)
         spadPulse = np.zeros(200)
         ydata.resize(spadPulse.shape)
