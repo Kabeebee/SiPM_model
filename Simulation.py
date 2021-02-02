@@ -4,9 +4,10 @@ import numpy.random as rand
 import h5py
 import matplotlib.pyplot as plt
 
-NUMSIMS = 10
-deadTime = 10
+NUMSIMS = 200
+deadTime = 20
 NUMSPADS = 25
+recoveryTime = 200
 
 def main():
     counter = 0
@@ -20,10 +21,12 @@ def main():
         ydata.resize(spadPulse.shape)
         spadPulse = spadPulse + ydata
 
+        afterPulseProb = rand.normal(0.02, 0.08)
+        if rand.rand() > 1 - afterPulseProb:
+            afterpulsing(ydata, spadPulse, xdata)
+
         elecNoise = randNoise(200, 1)
         spadPulse = np.add(spadPulse, elecNoise)
-
-        afterpulsing(ydata, spadPulse, xdata)
 
         ax.plot(xdata, spadPulse)
         counter += 1
@@ -52,9 +55,9 @@ def afterpulsing(ydata, spadPulse, xdata):
             if trial > 1 - pulseProb:
                 position = xdata[j] + lastPulse
                 if position > lastPulse + deadTime:
-                    scale = (0.99 ** float(200 - position)) # still an arbitrary scale factor
+                    scale = np.log(position/deadTime) / 3.1 # still an arbitrary scale factor
                     for i in range(position, len(ydata)):
-                        spadPulse[i] = spadPulse[i] + (ydata[(i - position)]) * scale
+                        spadPulse[i] = (spadPulse[i] + (ydata[(i - position)])) * scale
                     lastPulse = position
                     NUMCOUNTS += 1
         counter += 1
