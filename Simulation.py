@@ -4,8 +4,8 @@ import numpy.random as rand
 import h5py
 import matplotlib.pyplot as plt
 
-NUMSIMS = 100
-deadTime = 20
+NUMSIMS = 10
+deadTime = 10
 NUMSPADS = 25
 
 def main():
@@ -52,9 +52,9 @@ def afterpulsing(ydata, spadPulse, xdata):
             if trial > 1 - pulseProb:
                 position = xdata[j] + lastPulse
                 if position > lastPulse + deadTime:
-                    scale = rand.uniform(0.9, 0.99) ** position # still an arbitrary scale factor
+                    scale = (0.99 ** float(200 - position)) # still an arbitrary scale factor
                     for i in range(position, len(ydata)):
-                        spadPulse[i] = spadPulse[i] + (ydata[(i - position)] * scale)
+                        spadPulse[i] = spadPulse[i] + (ydata[(i - position)]) * scale
                     lastPulse = position
                     NUMCOUNTS += 1
         counter += 1
