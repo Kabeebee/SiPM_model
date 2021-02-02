@@ -4,16 +4,31 @@ import numpy.random as rand
 import h5py
 import matplotlib.pyplot as plt
 
+NUMSIMS = 100
 deadTime = 20
 NUMSPADS = 25
 
-#**************************************************************************************
-# read in and store the data from csv called 'londat.csf'
-xdata = np.array([])
-ydata = np.array([])
-xdata, ydata = dr.reader("londat.csv")
+def main():
+    counter = 0
+    fig, ax = plt.subplots()
+    while counter < NUMSIMS:
+        xdata = np.array([])
+        ydata = np.array([])
+        xdata, ydata = dr.reader("londat.csv")
+        xdata = np.arange(200)
+        spadPulse = np.zeros(200)
+        ydata.resize(spadPulse.shape)
+        spadPulse = spadPulse + ydata
 
-SiPMPulse = np.array([])
+        elecNoise = randNoise(200, 1)
+        spadPulse = np.add(spadPulse, elecNoise)
+
+        afterpulsing(ydata, spadPulse, xdata)
+
+        ax.plot(xdata, spadPulse)
+        counter += 1
+
+    plt.show()
 
 
 #**************************************************************************************
@@ -25,48 +40,34 @@ def randNoise(bins, stdev):
 
 #**************************************************************************************
 # Afterpulsing
-def afterpulsing(ydata, spadPulse):
-    A = 1
-    LAMBDA = 2
-    for j in range(1, len(xdata) - 1):
-        pulseProb = (A * ((xdata[j] + 1) ** (-LAMBDA)))
-        if rand.rand() > 1 - pulseProb:
-            position = xdata[j]
-            pos = j
-            if position > deadTime:
-                scale = rand.rand()
-                for i in range(pos, len(ydata)):
-                    spadPulse[i] = spadPulse[i] + ydata[(i - pos)]
+def afterpulsing(ydata, spadPulse, xdata):
+    LAMBDA = 0.02
+    lastPulse = 1
+    counter = 0
+    NUMCOUNTS = 0
+    while counter < 200:
+        for j in range(lastPulse, len(xdata) - lastPulse):
+            pulseProb = np.exp(-NUMCOUNTS) * (1 - np.exp(- LAMBDA))
+            trial = rand.rand()
+            if trial > 1 - pulseProb:
+                position = xdata[j] + lastPulse
+                if position > lastPulse + deadTime:
+                    scale = rand.uniform(0.9, 0.99) ** position # still an arbitrary scale factor
+                    for i in range(position, len(ydata)):
+                        spadPulse[i] = spadPulse[i] + (ydata[(i - position)] * scale)
+                    lastPulse = position
+                    NUMCOUNTS += 1
+        counter += 1
 
 
 #**************************************************************************************
 # make the data file and fill it with data : )
-def saveData():
+def saveData(iteration):
     dataFile = h5py.File('data.h5', 'w')
     dataFile.create_dataset('xdata', data = xdata)
     dataFile.create_dataset('ypulse', data = spadPulse)
     dataFile.close()
 
+if __name__ == '__main__':
+    main()
 
-
-#**************************************************************************************
-# Add together multiple SPad PUlses to simulate a Sipm
-# look at making the spad firing distrobution more sophisticated
-
-for index in range(0, 1): 
-    if rand.rand() > 0.5:
-        spadPulse = np.array([])
-        spadPulse = np.append(spadPulse, ydata)
-
-        afterpulsing(ydata, spadPulse)
-        spadPulse += randNoise(len(ydata), 2)
-
-        if len(SiPMPulse) == 0:
-            SiPMPulse = np.append(SiPMPulse, spadPulse)
-        
-        #else:
-            #SiPMPulse += spadPulse
-
-
-plt.plot(xdata, SiPMPulse)
-plt.show()
