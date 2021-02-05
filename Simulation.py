@@ -78,7 +78,7 @@ def afterpulsing(ydata, spadPulse, xdata):
 
 def crossTalk(ydata, spadPulse, xdata, Pulses):
     promptProb = 0.5
-    for n in range(0, Pulses):
+    for _ in range(0, Pulses):
         if rand.rand() < promptProb:
             spadPulse += ydata
         else:
