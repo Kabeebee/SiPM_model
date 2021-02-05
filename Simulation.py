@@ -4,10 +4,13 @@ import numpy.random as rand
 import h5py
 import matplotlib.pyplot as plt
 
-NUMSIMS = 200
+# Simulation Parameters
+NUMSIMS = 20
 deadTime = 20
-NUMSPADS = 25
 recoveryTime = 200
+crossTalkProbTotal = 0.5
+neighbours = 4
+crossTalkProb = 1 - (1 - crossTalkProbTotal)**(1/neighbours)
 
 def main():
     counter = 0
@@ -23,12 +26,20 @@ def main():
         ydata.resize(spadPulse.shape)
         spadPulse = spadPulse + ydata
 
-        afterPulseProb = rand.normal(0.02, 0.08)
-        if rand.rand() > 1 - afterPulseProb:
-            afterpulsing(ydata, spadPulse, xdata)
+        #afterPulseProb = rand.normal(0.02, 0.08)
+        #if rand.rand() > 1 - afterPulseProb:
+            #afterpulsing(ydata, spadPulse, xdata)
 
-        elecNoise = randNoise(200, 1)
-        spadPulse = np.add(spadPulse, elecNoise)
+        
+        triggered = rand.randint(0, neighbours)
+        
+        Pulses = rand.binomial(n = triggered, p=crossTalkProb)
+        print(Pulses)
+        if Pulses > 0:
+            spadPulse = crossTalk(ydata, spadPulse, xdata, Pulses)
+       
+
+        randNoise(spadPulse, 1)
 
         ax.plot(xdata, spadPulse)
         counter += 1
@@ -39,9 +50,9 @@ def main():
 #**************************************************************************************
 # add random fluctuations to data
 
-def randNoise(bins, stdev):
-    noise = rand.normal(0, stdev, bins)
-    return noise
+def randNoise(Pulse, stdev):
+    Pulse += rand.normal(0, stdev, len(Pulse))
+
 
 #**************************************************************************************
 # Afterpulsing
@@ -63,6 +74,29 @@ def afterpulsing(ydata, spadPulse, xdata):
                     lastPulse = position
                     NUMCOUNTS += 1
         counter += 1
+
+#**************************************************************************************
+# Add Crosstalk 
+
+def crossTalk(ydata, spadPulse, xdata, Pulses):
+    promptProb = 0.5
+
+    for n in range(0, Pulses):
+        if rand.rand() < promptProb:
+            spadPulse = np.add(spadPulse, ydata)
+        else:
+            afterpulsing(ydata, spadPulse, xdata)
+
+    return(spadPulse)
+
+
+
+    
+    
+
+
+
+
 
 
 #**************************************************************************************
