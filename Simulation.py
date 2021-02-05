@@ -26,17 +26,15 @@ def main():
         ydata.resize(spadPulse.shape)
         spadPulse = spadPulse + ydata
 
-        #afterPulseProb = rand.normal(0.02, 0.08)
-        #if rand.rand() > 1 - afterPulseProb:
-            #afterpulsing(ydata, spadPulse, xdata)
+        afterPulseProb = rand.normal(0.02, 0.08)
+        if rand.rand() > 1 - afterPulseProb:
+            afterpulsing(ydata, spadPulse, xdata)
 
         
         triggered = rand.randint(0, neighbours)
-        
         Pulses = rand.binomial(n = triggered, p=crossTalkProb)
-        print(Pulses)
         if Pulses > 0:
-            spadPulse = crossTalk(ydata, spadPulse, xdata, Pulses)
+            crossTalk(ydata, spadPulse, xdata, Pulses)
        
 
         randNoise(spadPulse, 1)
@@ -80,23 +78,11 @@ def afterpulsing(ydata, spadPulse, xdata):
 
 def crossTalk(ydata, spadPulse, xdata, Pulses):
     promptProb = 0.5
-
     for n in range(0, Pulses):
         if rand.rand() < promptProb:
-            spadPulse = np.add(spadPulse, ydata)
+            spadPulse += ydata
         else:
             afterpulsing(ydata, spadPulse, xdata)
-
-    return(spadPulse)
-
-
-
-    
-    
-
-
-
-
 
 
 #**************************************************************************************
