@@ -59,25 +59,14 @@ def randNoise(Pulse, stdev):
 
 #**************************************************************************************
 # Afterpulsing
-def afterpulsing(ydata, spadPulse, xdata, Pulses):
-    LAMBDA = 0.02
-    lastPulse = 1
-    counter = 0
-    NUMCOUNTS = 0
-    while counter < XLEN:
-        for j in range(lastPulse, len(xdata) - lastPulse):
-            pulseProb = np.exp(-NUMCOUNTS) * (1 - np.exp(- LAMBDA))
-            trial = rand.rand()
-            if trial > 1 - pulseProb:
-                position = xdata[j] + lastPulse
-                if position > lastPulse + deadTime:
-                    scale = np.log(position/deadTime) / 3.1 # still an arbitrary scale factor
-                    if scale > 1:
-                        scale = 1
-                    for i in range(position, len(ydata)):
-                        spadPulse[i] = (spadPulse[i] + (ydata[(i - position)])) * scale
-                    lastPulse = position
-                    NUMCOUNTS += 1
+def afterpulsing(ydata, spadPulse, xdata, pulses):
+    counter = deadTime
+    pulsed = 0
+    invprobability = 1 - (3 / TAU)
+    while counter < XLEN and pulsed < pulses:
+        if rand.rand() > invprobability:
+            
+
         counter += 1
 
 #**************************************************************************************
