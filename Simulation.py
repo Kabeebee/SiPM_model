@@ -5,12 +5,15 @@ import h5py
 import matplotlib.pyplot as plt
 
 # Simulation Parameters
-NUMSIMS = 20
+NUMSIMS = 100
 deadTime = 20
 recoveryTime = 200
 crossTalkProbTotal = 0.5
 neighbours = 4
 crossTalkProb = 1 - (1 - crossTalkProbTotal)**(1/neighbours)
+XLEN = 2000
+AFTERPULSEPROB = 0.05
+TAU = 100
 
 def main():
     counter = 0
@@ -21,27 +24,29 @@ def main():
 
     while counter < NUMSIMS:
        
-        xdata = np.arange(200)
-        spadPulse = np.zeros(200)
+        xdata = np.arange(XLEN)
+        spadPulse = np.zeros(XLEN)
         ydata.resize(spadPulse.shape)
         spadPulse = spadPulse + ydata
 
-        afterPulseProb = rand.normal(0.02, 0.08)
-        if rand.rand() > 1 - afterPulseProb:
-            afterpulsing(ydata, spadPulse, xdata)
+
+        #use binomial distrobution along with total afterpulse prob to determin number of afterpulses
+        afterPulses = rand.poisson(AFTERPULSEPROB)
+        if afterPulses > 0:
+            afterpulsing(ydata, spadPulse, xdata, afterPulses)
 
         
         triggered = rand.randint(0, neighbours)
-        Pulses = rand.binomial(n = triggered, p=crossTalkProb)
-        if Pulses > 0:
-            crossTalk(ydata, spadPulse, xdata, Pulses)
+        crossPulses = rand.binomial(n = triggered, p=crossTalkProb)
+        if crossPulses > 0:
+            crossTalk(ydata, spadPulse, xdata, crossPulses)
        
 
         randNoise(spadPulse, 1)
-
+        
+        
         ax.plot(xdata, spadPulse)
         counter += 1
-
     plt.show()
 
 
@@ -54,12 +59,12 @@ def randNoise(Pulse, stdev):
 
 #**************************************************************************************
 # Afterpulsing
-def afterpulsing(ydata, spadPulse, xdata):
+def afterpulsing(ydata, spadPulse, xdata, Pulses):
     LAMBDA = 0.02
     lastPulse = 1
     counter = 0
     NUMCOUNTS = 0
-    while counter < 200:
+    while counter < XLEN:
         for j in range(lastPulse, len(xdata) - lastPulse):
             pulseProb = np.exp(-NUMCOUNTS) * (1 - np.exp(- LAMBDA))
             trial = rand.rand()
@@ -67,6 +72,8 @@ def afterpulsing(ydata, spadPulse, xdata):
                 position = xdata[j] + lastPulse
                 if position > lastPulse + deadTime:
                     scale = np.log(position/deadTime) / 3.1 # still an arbitrary scale factor
+                    if scale > 1:
+                        scale = 1
                     for i in range(position, len(ydata)):
                         spadPulse[i] = (spadPulse[i] + (ydata[(i - position)])) * scale
                     lastPulse = position
@@ -78,11 +85,14 @@ def afterpulsing(ydata, spadPulse, xdata):
 
 def crossTalk(ydata, spadPulse, xdata, Pulses):
     promptProb = 0.5
+    delayed = 0
     for _ in range(0, Pulses):
         if rand.rand() < promptProb:
             spadPulse += ydata
         else:
-            afterpulsing(ydata, spadPulse, xdata)
+            delayed += 1
+            
+    afterpulsing(ydata, spadPulse, xdata, delayed)
 
 
 #**************************************************************************************
