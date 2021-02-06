@@ -62,14 +62,18 @@ def randNoise(Pulse, stdev):
 def afterpulsing(ydata, spadPulse, xdata, pulses):
     time = deadTime
     pulsed = 0
-    invprobability = 1 - (3 / TAU)
-    while time < XLEN and pulsed < pulses:
+    # calculate 1 - probability so that random number can just be generated and compared
+    invprobability = 1 - (3 / TAU) # this is 1 - dt/tau where tau is expected time for recombination
+    while time < XLEN and pulsed < pulses: 
         if rand.rand() > invprobability:
+            #scaling factor for pulse amplitude
             scale = np.log(time/deadTime) / 3.1 # still an arbitrary scale factor
             if scale > 1:
                 scale = 1
+            # Adding pulses when required
             for i in range(time, len(ydata)):
                 spadPulse[i] = (spadPulse[i] + (ydata[(i - time)])) * scale
+            #skip over dead time
             time += 20
             pulsed += 1
             
