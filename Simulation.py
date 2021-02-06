@@ -60,14 +60,21 @@ def randNoise(Pulse, stdev):
 #**************************************************************************************
 # Afterpulsing
 def afterpulsing(ydata, spadPulse, xdata, pulses):
-    counter = deadTime
+    time = deadTime
     pulsed = 0
     invprobability = 1 - (3 / TAU)
-    while counter < XLEN and pulsed < pulses:
+    while time < XLEN and pulsed < pulses:
         if rand.rand() > invprobability:
+            scale = np.log(time/deadTime) / 3.1 # still an arbitrary scale factor
+            if scale > 1:
+                scale = 1
+            for i in range(time, len(ydata)):
+                spadPulse[i] = (spadPulse[i] + (ydata[(i - time)])) * scale
+            time += 20
+            pulsed += 1
             
 
-        counter += 1
+        time += 1
 
 #**************************************************************************************
 # Add Crosstalk 
