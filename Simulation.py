@@ -5,7 +5,7 @@ import h5py
 import matplotlib.pyplot as plt
 
 # Simulation Parameters
-NUMSIMS = 100
+NUMSIMS = 1
 deadTime = 20
 recoveryTime = 200
 crossTalkProbTotal = 0.5
@@ -14,6 +14,10 @@ crossTalkProb = 1 - (1 - crossTalkProbTotal)**(1/neighbours)
 XLEN = 2000
 AFTERPULSEPROB = 0.05
 TAU = 100
+
+# create array to store truth data
+truthData = np.array([0, [], 0, 0, []], dtype=object, )
+
 
 def main():
     counter = 0
@@ -33,6 +37,7 @@ def main():
         #use binomial distrobution along with total afterpulse prob to determin number of afterpulses
         afterPulses = rand.poisson(AFTERPULSEPROB)
         if afterPulses > 0:
+            truthData[0] = afterPulses
             afterpulsing(ydata, spadPulse, xdata, afterPulses)
 
         
@@ -47,6 +52,7 @@ def main():
         
         ax.plot(xdata, spadPulse)
         counter += 1
+        print(truthData)
     plt.show()
 
 
@@ -59,10 +65,10 @@ def randNoise(Pulse, stdev):
 
 #**************************************************************************************
 # Afterpulsing
-def afterpulsing(ydata, spadPulse, xdata, pulses):
+def afterpulsing(ydata, spadPulse, xdata, pulses, ap = True):
     time = deadTime
     pulsed = 0
-    # calculate 1 - probability so that random number can just be generated and compared
+    # calculate (1 - probability) so that random number can just be generated and compared
     invprobability = 1 - (3 / TAU) # this is 1 - dt/tau where tau is expected time for recombination
     while time < XLEN and pulsed < pulses: 
         if rand.rand() > invprobability:
@@ -73,6 +79,12 @@ def afterpulsing(ydata, spadPulse, xdata, pulses):
             # Adding pulses when required
             for i in range(time, len(ydata)):
                 spadPulse[i] = (spadPulse[i] + (ydata[(i - time)])) * scale
+
+            #add position dat to truth values
+            if ap == True:
+                truthData[1] = np.append(truthData[1], time)
+            else:
+                truthData[4] = np.append(truthData[4], time)
             #skip over dead time
             time += 20
             pulsed += 1
@@ -84,15 +96,17 @@ def afterpulsing(ydata, spadPulse, xdata, pulses):
 # Add Crosstalk 
 
 def crossTalk(ydata, spadPulse, xdata, Pulses):
-    promptProb = 0.5
+    #promptProb = 0.5
     delayed = 0
     for _ in range(0, Pulses):
-        if rand.rand() < promptProb:
+        if rand.rand() > AFTERPULSEPROB:
             spadPulse += ydata
+            truthData[2] += 1
         else:
             delayed += 1
-            
-    afterpulsing(ydata, spadPulse, xdata, delayed)
+    
+    truthData[3] = delayed
+    afterpulsing(ydata, spadPulse, xdata, delayed, ap = False)
 
 
 #**************************************************************************************
