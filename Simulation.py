@@ -5,7 +5,7 @@ import h5py
 import matplotlib.pyplot as plt
 
 # Simulation Parameters
-NUMSIMS = 1
+NUMSIMS = 10000
 deadTime = 20
 recoveryTime = 200
 crossTalkProbTotal = 0.5
@@ -27,7 +27,6 @@ def main():
     xdata, ydata = dr.reader("londat.csv")
 
     while counter < NUMSIMS:
-       
         xdata = np.arange(XLEN)
         spadPulse = np.zeros(XLEN)
         ydata.resize(spadPulse.shape)
@@ -52,7 +51,6 @@ def main():
         
         ax.plot(xdata, spadPulse)
         counter += 1
-        print(truthData)
     plt.show()
 
 
@@ -73,9 +71,9 @@ def afterpulsing(ydata, spadPulse, xdata, pulses, ap = True):
     while time < XLEN and pulsed < pulses: 
         if rand.rand() > invprobability:
             #scaling factor for pulse amplitude
-            scale = np.log(time/deadTime) / 3.1 # still an arbitrary scale factor
-            if scale > 1:
-                scale = 1
+            scale = (1 - np.exp(-(time - deadTime/8.68588))) # still an arbitrary scale factor
+            #if scale > 1:
+                #scale = 1
             # Adding pulses when required
             for i in range(time, len(ydata)):
                 spadPulse[i] = (spadPulse[i] + (ydata[(i - time)])) * scale
