@@ -16,7 +16,7 @@ AFTERPULSEPROB = 0.05
 TAU = 100
 
 # create array to store truth data
-truthData = np.array([0, [], 0, 0, []], dtype=object, )
+truthData = np.array([0, [], 0, 0, []], dtype=object)
 
 
 def main():
