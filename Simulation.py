@@ -5,7 +5,7 @@ import h5py
 import matplotlib.pyplot as plt
 
 # Simulation Parameters
-NUMSIMS = 1
+NUMSIMS = 10
 deadTime = 20
 recoveryTime = 200
 crossTalkProbTotal = 0.5
@@ -20,13 +20,21 @@ truthData = np.array([0, [], 0, 0, []], dtype=object)
 
 
 def main():
+
     counter = 0
+
     fig, ax = plt.subplots()
     xdata = np.array([])
     ydata = np.array([])
     xdata, ydata = dr.reader("londat.csv")
 
     while counter < NUMSIMS:
+
+        truthData[0] = 0
+        truthData[1] = []
+        truthData[2] = 0
+        truthData[3] = 0
+        truthData[4] = []
        
         xdata = np.arange(XLEN)
         spadPulse = np.zeros(XLEN)
