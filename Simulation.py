@@ -59,26 +59,26 @@ def randNoise(Pulse, stdev):
 
 #**************************************************************************************
 # Afterpulsing
-def afterpulsing(ydata, spadPulse, xdata, Pulses):
-    LAMBDA = 0.02
-    lastPulse = 1
-    counter = 0
-    NUMCOUNTS = 0
-    while counter < XLEN:
-        for j in range(lastPulse, len(xdata) - lastPulse):
-            pulseProb = np.exp(-NUMCOUNTS) * (1 - np.exp(- LAMBDA))
-            trial = rand.rand()
-            if trial > 1 - pulseProb:
-                position = xdata[j] + lastPulse
-                if position > lastPulse + deadTime:
-                    scale = np.log(position/deadTime) / 3.1 # still an arbitrary scale factor
-                    if scale > 1:
-                        scale = 1
-                    for i in range(position, len(ydata)):
-                        spadPulse[i] = (spadPulse[i] + (ydata[(i - position)])) * scale
-                    lastPulse = position
-                    NUMCOUNTS += 1
-        counter += 1
+def afterpulsing(ydata, spadPulse, xdata, pulses):
+    time = deadTime
+    pulsed = 0
+    # calculate 1 - probability so that random number can just be generated and compared
+    invprobability = 1 - (3 / TAU) # this is 1 - dt/tau where tau is expected time for recombination
+    while time < XLEN and pulsed < pulses: 
+        if rand.rand() > invprobability:
+            #scaling factor for pulse amplitude
+            scale = np.log(time/deadTime) / 3.1 # still an arbitrary scale factor
+            if scale > 1:
+                scale = 1
+            # Adding pulses when required
+            for i in range(time, len(ydata)):
+                spadPulse[i] = (spadPulse[i] + (ydata[(i - time)])) * scale
+            #skip over dead time
+            time += 20
+            pulsed += 1
+            
+
+        time += 1
 
 #**************************************************************************************
 # Add Crosstalk 
