@@ -21,6 +21,9 @@ truthData = np.array([0, [], 0, 0, []], dtype=object)
 
 def main():
 
+    dataFile = h5py.File('data.h5', 'w')
+    dataFile.close()
+
     counter = 0
 
     fig, ax = plt.subplots()
@@ -124,7 +127,7 @@ def crossTalk(ydata, spadPulse, xdata, Pulses):
 #**************************************************************************************
 # make the data file and fill it with data : )
 def saveData(Data2Save, dataName):
-    dataFile = h5py.File('data.h5', 'w')
+    dataFile = h5py.File('data.h5', 'a')
     dataFile.create_dataset(dataName, data = Data2Save)
 
     dataFile.close()
