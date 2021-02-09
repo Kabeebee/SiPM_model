@@ -5,7 +5,7 @@ import h5py
 import matplotlib.pyplot as plt
 
 # Simulation Parameters
-NUMSIMS = 10
+NUMSIMS = 1
 deadTime = 20
 recoveryTime = 200
 crossTalkProbTotal = 0.5
