@@ -27,8 +27,9 @@ def main():
     xdata = np.array([])
     ydata = np.array([])
     xdata, ydata = dr.reader("londat.csv")
+    xdata = np.arange(XLEN)
 
-    saveData(xdata, "Time")
+    saveData(xdata, "xdata")
 
     while counter < NUMSIMS:
 
@@ -38,7 +39,6 @@ def main():
         truthData[3] = 0
         truthData[4] = []
        
-        xdata = np.arange(XLEN)
         spadPulse = np.zeros(XLEN)
         ydata.resize(spadPulse.shape)
         spadPulse = spadPulse + ydata
