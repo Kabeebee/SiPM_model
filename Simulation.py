@@ -28,6 +28,8 @@ def main():
     ydata = np.array([])
     xdata, ydata = dr.reader("londat.csv")
 
+    saveData(xdata, "Time")
+
     while counter < NUMSIMS:
 
         truthData[0] = 0
@@ -56,10 +58,13 @@ def main():
        
 
         randNoise(spadPulse, 1)
-        
-        
+         
         ax.plot(xdata, spadPulse)
+
+        pulseDataName = "SpadPulse%d" % (counter)
+        saveData(spadPulse, pulseDataName)
         counter += 1
+
     plt.show()
 
 
@@ -118,11 +123,13 @@ def crossTalk(ydata, spadPulse, xdata, Pulses):
 
 #**************************************************************************************
 # make the data file and fill it with data : )
-def saveData(iteration, xdata,  spadPulse):
+def saveData(Data2Save, dataName):
     dataFile = h5py.File('data.h5', 'w')
-    dataFile.create_dataset('xdata', data = xdata)
-    dataFile.create_dataset('ypulse', data = spadPulse)
+    dataFile.create_dataset(dataName, data = Data2Save)
+
     dataFile.close()
+
+    print("File entry [%s] saved to disk" % (dataName))
 
 if __name__ == '__main__':
     main()
