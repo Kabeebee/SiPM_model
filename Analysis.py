@@ -5,10 +5,38 @@ import h5py
 import matplotlib.pyplot as plt
 
 #**************************************************************************************
-# open the file and read the data back out
+
+DataLeft = True # DataLeft checks if there is data still left to analyse
+counter = 0     # keeps track of which data set we're on
+
+# load in the x-data once
 
 readFile = h5py.File('data.h5', 'r')
-data = readFile.get("SpadPulse0")
-data = np.array(data)
-readFile.close()
-print(data)
+xdata = readFile.get('xdata')
+xdata = np.array(xdata)
+readFile.close
+
+# load in y-data sets sequentially 
+
+while DataLeft:
+
+    readFile = h5py.File('data.h5', 'r')
+    data = readFile.get("SpadPulse%d" % counter)
+
+# if there is no data stored under that name, we are out of data. stop the loop
+    if data == None:
+        DataLeft = False
+        break
+
+# there is data here... analysis time
+    else:
+        data = np.array(data)
+        readFile.close()
+
+        # analyseData(data)
+
+        print(data)
+
+        # profit()
+
+        counter += 1
