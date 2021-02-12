@@ -5,7 +5,7 @@ import h5py
 import matplotlib.pyplot as plt
 
 # Simulation Parameters
-NUMSIMS = 1
+NUMSIMS = 10
 deadTime = 20
 recoveryTime = 200
 crossTalkProbTotal = 0.5
@@ -16,7 +16,7 @@ AFTERPULSEPROB = 0.05
 TAU = 100
 
 # create array to store truth data
-truthData = np.array([0, [], 0, 0, []], dtype=object)
+truthData = np.array([0, [], [], 0, 0, []], dtype=object)
 
 
 def main():
@@ -37,7 +37,7 @@ def main():
     while counter < NUMSIMS:
 
         truthData[0] = 0
-        truthData[1] = 0
+        truthData[1] = []
         truthData[2] = []
         truthData[3] = 0
         truthData[4] = 0
