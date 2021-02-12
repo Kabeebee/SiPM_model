@@ -5,7 +5,7 @@ import h5py
 import matplotlib.pyplot as plt
 
 # Simulation Parameters
-NUMSIMS = 10
+NUMSIMS = 100
 deadTime = 20
 recoveryTime = 200
 crossTalkProbTotal = 0.5
@@ -31,10 +31,11 @@ def main():
     while counter < NUMSIMS:
 
         truthData[0] = 0
-        truthData[1] = []
-        truthData[2] = 0
+        truthData[1] = 0
+        truthData[2] = []
         truthData[3] = 0
-        truthData[4] = []
+        truthData[4] = 0
+        truthData[5] = []
        
         xdata = np.arange(XLEN)
         spadPulse = np.zeros(XLEN)
@@ -49,8 +50,8 @@ def main():
             afterpulsing(ydata, spadPulse, xdata, afterPulses)
 
         
-        triggered = rand.randint(0, neighbours)
-        crossPulses = rand.binomial(n = triggered, p=crossTalkProb)
+    
+        crossPulses = rand.binomial(n = neighbours, p=crossTalkProb)
         if crossPulses > 0:
             crossTalk(ydata, spadPulse, xdata, crossPulses)
        
@@ -80,18 +81,19 @@ def afterpulsing(ydata, spadPulse, xdata, pulses, ap = True):
     while time < XLEN and pulsed < pulses: 
         if rand.rand() > invprobability:
             #scaling factor for pulse amplitude
-            scale = (1 - np.exp(-(time - deadTime/8.68588))) # still an arbitrary scale factor
+            scale = (1 - np.exp(-(time - deadTime/800.68588))) # still an arbitrary scale factor
             #if scale > 1:
                 #scale = 1
             # Adding pulses when required
             for i in range(time, len(ydata)):
                 spadPulse[i] = (spadPulse[i] + (ydata[(i - time)])) * scale
+                truthData[1] = scale
 
             #add position dat to truth values
             if ap == True:
-                truthData[1] = np.append(truthData[1], time)
+                truthData[2] = np.append(truthData[1], time)
             else:
-                truthData[4] = np.append(truthData[4], time)
+                truthData[5] = np.append(truthData[4], time)
             #skip over dead time
             time += 20
             pulsed += 1
@@ -108,11 +110,11 @@ def crossTalk(ydata, spadPulse, xdata, Pulses):
     for _ in range(0, Pulses):
         if rand.rand() > AFTERPULSEPROB:
             spadPulse += ydata
-            truthData[2] += 1
+            truthData[3] += 1
         else:
             delayed += 1
     
-    truthData[3] = delayed
+    truthData[4] = delayed
     afterpulsing(ydata, spadPulse, xdata, delayed, ap = False)
 
 
