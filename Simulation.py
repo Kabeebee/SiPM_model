@@ -5,7 +5,11 @@ import h5py
 import matplotlib.pyplot as plt
 
 # Simulation Parameters
+<<<<<<< HEAD
 NUMSIMS = 100
+=======
+NUMSIMS = 1
+>>>>>>> 8b53e93127cd5e21709453eb7a46fb40e6db4a47
 deadTime = 20
 recoveryTime = 200
 crossTalkProbTotal = 0.5
@@ -21,12 +25,18 @@ truthData = np.array([0, [], 0, 0, []], dtype=object)
 
 def main():
 
+    dataFile = h5py.File('data.h5', 'w')
+    dataFile.close()
+
     counter = 0
 
     fig, ax = plt.subplots()
     xdata = np.array([])
     ydata = np.array([])
     xdata, ydata = dr.reader("londat.csv")
+    xdata = np.arange(XLEN)
+
+    saveData(xdata, "xdata")
 
     while counter < NUMSIMS:
 
@@ -37,7 +47,6 @@ def main():
         truthData[4] = 0
         truthData[5] = []
        
-        xdata = np.arange(XLEN)
         spadPulse = np.zeros(XLEN)
         ydata.resize(spadPulse.shape)
         spadPulse = spadPulse + ydata
@@ -57,10 +66,13 @@ def main():
        
 
         randNoise(spadPulse, 1)
-        
-        
+         
         ax.plot(xdata, spadPulse)
+
+        pulseDataName = "SpadPulse%d" % (counter)
+        saveData(spadPulse, pulseDataName)
         counter += 1
+
     plt.show()
 
 
@@ -120,11 +132,13 @@ def crossTalk(ydata, spadPulse, xdata, Pulses):
 
 #**************************************************************************************
 # make the data file and fill it with data : )
-def saveData(iteration, xdata,  spadPulse):
-    dataFile = h5py.File('data.h5', 'w')
-    dataFile.create_dataset('xdata', data = xdata)
-    dataFile.create_dataset('ypulse', data = spadPulse)
+def saveData(Data2Save, dataName):
+    dataFile = h5py.File('data.h5', 'a')
+    dataFile.create_dataset(dataName, data = Data2Save)
+
     dataFile.close()
+
+    print("File entry [%s] saved to disk" % (dataName))
 
 if __name__ == '__main__':
     main()
