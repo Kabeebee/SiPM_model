@@ -5,14 +5,14 @@ import h5py
 import matplotlib.pyplot as plt
 
 # Simulation Parameters
-NUMSIMS = 100
+NUMSIMS = 1000
 deadTime = 20
 recoveryTime = 200
 crossTalkProbTotal = 0.5
 neighbours = 4
 crossTalkProb = 1 - (1 - crossTalkProbTotal)**(1/neighbours)
 XLEN = 2000
-AFTERPULSEPROB = 0.05
+AFTERPULSEPROB = 0.5
 TAU = 100
 
 def main():
@@ -90,7 +90,7 @@ def afterpulsing(ydata, spadPulse, xdata, pulses):
             APData = np.append(APData, time)
             
             #scaling factor for pulse amplitude
-            scale = (1 - np.exp(-(time - deadTime/800.68588))) # still an arbitrary scale factor
+            scale = (1 - np.exp(-(time - deadTime)/45)) # still an arbitrary scale factor
             APData = np.append(APData, scale)
             
             # Add the pulse on
