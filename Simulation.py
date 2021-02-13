@@ -32,7 +32,9 @@ def main():
     xdata, ydata = dr.reader("londat.csv")
     xdata = np.arange(XLEN)
 
-    saveData(xdata, "xdata")
+    # Save teh xdata into the h5py file
+    dataFile = h5py.File('data.h5', 'a')
+    dataFile.create_dataset("xdata", data = xdata)
 
     while counter < NUMSIMS:
 
@@ -65,8 +67,7 @@ def main():
          
         ax.plot(xdata, spadPulse)
 
-        pulseDataName = "SpadPulse%d" % (counter)
-        saveData(spadPulse, pulseDataName)
+        saveData(spadPulse, counter)
         counter += 1
 
     plt.show()
@@ -128,13 +129,17 @@ def crossTalk(ydata, spadPulse, xdata, Pulses):
 
 #**************************************************************************************
 # make the data file and fill it with data : )
-def saveData(Data2Save, dataName):
+def saveData(Data2Save, DataNumber):
+    # Open data file
     dataFile = h5py.File('data.h5', 'a')
-    dataFile.create_dataset(dataName, data = Data2Save)
 
+    # Append the spad data and truth data to the file
+    dataFile.create_dataset(f"SPADPulse{DataNumber}", data = Data2Save)
+    dataFile.create_dataset(f"Truth{DataNumber}", data = truthData)
+    
+    # Close the file
     dataFile.close()
 
-    print("File entry [%s] saved to disk" % (dataName))
 
 if __name__ == '__main__':
     main()
