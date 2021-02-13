@@ -10,6 +10,7 @@ from datetime import datetime
 class Pulse:
     def __init__(self):
         self.numAfterPulses = 0
+        self.afterPulseTimes = []
         self.afterPulseAmplitudes = []
         self.numPromptCT = 0
 
@@ -36,7 +37,7 @@ def main():
         pulseData = Pulse()
 
         readFile = h5py.File('data.h5', 'r')
-        data = readFile.get("SpadPulse%d" % counter)
+        data = readFile.get("SPADPulse%d" % counter)
 
     # if there is no data stored under that name, we are out of data. stop the loop
         if data == None:
@@ -52,6 +53,7 @@ def main():
 
             for i in range(len(peakPositions)):
                 if i != 0:
+                    pulseData.afterPulseTimes.append(peakPositions[i])
                     amplitude = data[peakPositions[i]]
                     pulseData.afterPulseAmplitudes.append(amplitude)
                 elif i == 0:
@@ -65,6 +67,7 @@ def main():
             print("-------- pulse No:%d --------" % (counter))
             print("Number of afterpulses: %d" % pulseData.numAfterPulses)
             if pulseData.numAfterPulses != 0:
+                print("Afterpulse Time(s): %s" % str(pulseData.afterPulseTimes))
                 print("Afterpulse amplitude(s): %s" % str(pulseData.afterPulseAmplitudes))
             print("Number of Prompt CTs: %d" % pulseData.numPromptCT)
 
@@ -88,7 +91,7 @@ def calculate_num_peaks(data, template):
 
 def calculate_promptCT(amplitude, template):
     PE = np.amax(template) # one photon energy is the max value in the archetype pulse
-    ampInPE = round(amplitude/PE) - 1
+    ampInPE = (amplitude/PE)
     return ampInPE
 
 if __name__ == '__main__':
