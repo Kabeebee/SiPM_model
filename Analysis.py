@@ -11,6 +11,7 @@ class Pulse:
     def __init__(self):
         self.numAfterPulses = 0
         self.afterPulseAmplitudes = []
+        self.numPromptCT = 0
 
 def main():
     start_time = datetime.now()
@@ -53,12 +54,19 @@ def main():
                 if i != 0:
                     amplitude = data[peakPositions[i]]
                     pulseData.afterPulseAmplitudes.append(amplitude)
+                elif i == 0:
+                    amplitude = data[peakPositions[i]]
+                    CT = calculate_promptCT(amplitude, template_pulse)
+                    pulseData.numPromptCT = CT
                 
             pulseData.numAfterPulses = numPeaks - 1
 
             counter += 1
+            print("-------- pulse No:%d --------" % (counter))
             print("Number of afterpulses: %d" % pulseData.numAfterPulses)
-            print("Afterpulse amplitude(s): %s" % str(pulseData.afterPulseAmplitudes))
+            if pulseData.numAfterPulses != 0:
+                print("Afterpulse amplitude(s): %s" % str(pulseData.afterPulseAmplitudes))
+            print("Number of Prompt CTs: %d" % pulseData.numPromptCT)
 
     stop_time = datetime.now()
     run_time = stop_time - start_time
@@ -77,6 +85,11 @@ def calculate_num_peaks(data, template):
     num_peaks = len(peaks[1]['peak_heights'])
     peak_positions = peaks[0] - lag
     return num_peaks, peak_positions
+
+def calculate_promptCT(amplitude, template):
+    PE = np.amax(template) # one photon energy is the max value in the archetype pulse
+    ampInPE = round(amplitude/PE) - 1
+    return ampInPE
 
 if __name__ == '__main__':
     main()
