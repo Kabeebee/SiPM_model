@@ -8,6 +8,9 @@ import matplotlib.pyplot as plt
 
 DataLeft = True # DataLeft checks if there is data still left to analyse
 counter = 0     # keeps track of which data set we're on
+SAMPLE = 
+
+fig, ax = plt.subplots()
 
 # load in the x-data once
 
@@ -35,8 +38,12 @@ while DataLeft:
 
         # analyseData(data)
 
-        print(data)
+        ax.plot(xdata, data)
 
         # profit()
 
+
+
         counter += 1
+
+plt.show()
