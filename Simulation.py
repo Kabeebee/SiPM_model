@@ -5,7 +5,7 @@ import h5py
 import matplotlib.pyplot as plt
 
 # Simulation Parameters
-NUMSIMS = 10
+NUMSIMS = 100
 deadTime = 20
 recoveryTime = 200
 crossTalkProbTotal = 0.5
@@ -14,10 +14,6 @@ crossTalkProb = 1 - (1 - crossTalkProbTotal)**(1/neighbours)
 XLEN = 2000
 AFTERPULSEPROB = 0.05
 TAU = 100
-
-# create array to store truth data
-truthData = np.array([0, [], [], 0, 0, []], dtype=object)
-
 
 def main():
 
@@ -38,12 +34,9 @@ def main():
 
     while counter < NUMSIMS:
 
-        truthData[0] = 0
-        truthData[1] = []
-        truthData[2] = []
-        truthData[3] = 0
-        truthData[4] = 0
-        truthData[5] = []
+        # define truth arrays for this pulse
+        afterpulseData = np.array([0])
+        crossTalkData = np.array([0, 0])
        
         spadPulse = np.zeros(XLEN)
         ydata.resize(spadPulse.shape)
@@ -53,21 +46,24 @@ def main():
         #use binomial distrobution along with total afterpulse prob to determin number of afterpulses
         afterPulses = rand.poisson(AFTERPULSEPROB)
         if afterPulses > 0:
-            truthData[0] = afterPulses
-            afterpulsing(ydata, spadPulse, xdata, afterPulses)
+            afterpulseData[0] = afterPulses
+            afterpulseData = afterpulsing(ydata, spadPulse, xdata, afterPulses)
 
         
     
         crossPulses = rand.binomial(n = neighbours, p=crossTalkProb)
         if crossPulses > 0:
-            crossTalk(ydata, spadPulse, xdata, crossPulses)
+            crossTalkData = crossTalk(ydata, spadPulse, xdata, crossPulses)
        
 
         randNoise(spadPulse, 1)
          
         ax.plot(xdata, spadPulse)
 
-        saveData(spadPulse, counter)
+        saveData(spadPulse, afterpulseData, crossTalkData, counter)
+        
+        print(f"AP{counter}: {afterpulseData}")
+        print(f"CT{counter}: {crossTalkData}")
         counter += 1
 
     plt.show()
@@ -82,33 +78,32 @@ def randNoise(Pulse, stdev):
 
 #**************************************************************************************
 # Afterpulsing
-def afterpulsing(ydata, spadPulse, xdata, pulses, ap = True):
+def afterpulsing(ydata, spadPulse, xdata, pulses):
     time = deadTime
+    APData = np.array([pulses])
     pulsed = 0
     # calculate (1 - probability) so that random number can just be generated and compared
     invprobability = 1 - (3 / TAU) # this is 1 - dt/tau where tau is expected time for recombination
     while time < XLEN and pulsed < pulses: 
         if rand.rand() > invprobability:
+            # add position dat to truth values
+            APData = np.append(APData, time)
+            
             #scaling factor for pulse amplitude
             scale = (1 - np.exp(-(time - deadTime/800.68588))) # still an arbitrary scale factor
-            #if scale > 1:
-                #scale = 1
-            # Adding pulses when required
+            APData = np.append(APData, scale)
+            
+            # Add the pulse on
             for i in range(time, len(ydata)):
                 spadPulse[i] = (spadPulse[i] + (ydata[(i - time)])) * scale
-                truthData[1] = scale
 
-            #add position dat to truth values
-            if ap == True:
-                truthData[2] = np.append(truthData[1], time)
-            else:
-                truthData[5] = np.append(truthData[4], time)
             #skip over dead time
             time += 20
             pulsed += 1
             
 
         time += 1
+    return(APData)
 
 #**************************************************************************************
 # Add Crosstalk 
@@ -116,27 +111,29 @@ def afterpulsing(ydata, spadPulse, xdata, pulses, ap = True):
 def crossTalk(ydata, spadPulse, xdata, Pulses):
     #promptProb = 0.5
     delayed = 0
+    CTData = np.array([0, 0])
     for _ in range(0, Pulses):
         if rand.rand() > AFTERPULSEPROB:
             spadPulse += ydata
-            truthData[3] += 1
+            CTData[0] += 1
         else:
             delayed += 1
     
-    truthData[4] = delayed
-    afterpulsing(ydata, spadPulse, xdata, delayed, ap = False)
+  
+    CTData[1] = delayed
+    return(CTData)
 
 
 #**************************************************************************************
 # make the data file and fill it with data : )
-def saveData(Data2Save, DataNumber):
+def saveData(Data2Save, APData, CTData, DataNumber):
     # Open data file
     dataFile = h5py.File('data.h5', 'a')
-
+    
     # Append the spad data and truth data to the file
     dataFile.create_dataset(f"SPADPulse{DataNumber}", data = Data2Save)
-    dataFile.create_dataset(f"Truth{DataNumber}", data = truthData)
-    
+    dataFile.create_dataset(f"APData{DataNumber}", data = APData)
+    dataFile.create_dataset(f"CTData{DataNumber}", data = CTData)
     # Close the file
     dataFile.close()
 
