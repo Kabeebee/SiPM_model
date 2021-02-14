@@ -5,15 +5,15 @@ import h5py
 import matplotlib.pyplot as plt
 
 # Simulation Parameters
-NUMSIMS = 1000
-deadTime = 20
+NUMSIMS = 10
+deadTime = 1000
 recoveryTime = 200
-crossTalkProbTotal = 0.5
+crossTalkProbTotal = 0.25
 neighbours = 4
 crossTalkProb = 1 - (1 - crossTalkProbTotal)**(1/neighbours)
-XLEN = 2000
-AFTERPULSEPROB = 0.5
-TAU = 100
+XLEN = 300000
+AFTERPULSEPROB = 0.05
+TAU = 5000
 
 def main():
 
@@ -109,11 +109,11 @@ def afterpulsing(ydata, spadPulse, xdata, pulses):
 # Add Crosstalk 
 
 def crossTalk(ydata, spadPulse, xdata, Pulses):
-    #promptProb = 0.5
+    promptProb = 0.6
     delayed = 0
     CTData = np.array([0, 0])
     for _ in range(0, Pulses):
-        if rand.rand() > AFTERPULSEPROB:
+        if rand.rand() < promptProb:
             spadPulse += ydata
             CTData[0] += 1
         else:
