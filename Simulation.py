@@ -5,7 +5,7 @@ import h5py
 import matplotlib.pyplot as plt
 
 # Simulation Parameters
-NUMSIMS = 10
+NUMSIMS = 1000000
 deadTime = 1000
 recoveryTime = 200
 crossTalkProbTotal = 0.25
@@ -13,23 +13,22 @@ neighbours = 4
 crossTalkProb = 1 - (1 - crossTalkProbTotal)**(1/neighbours)
 XLEN = 300000
 AFTERPULSEPROB = 0.05
-TAU = 5000
+TAU = 50000
+FILEOUTPUT = "LongData.h5"
 
 def main():
 
-    dataFile = h5py.File('data.h5', 'w')
+    dataFile = h5py.File(FILEOUTPUT, 'w')
     dataFile.close()
 
     counter = 0
-
-    fig, ax = plt.subplots()
     xdata = np.array([])
     ydata = np.array([])
     xdata, ydata = dr.reader("londat.csv")
     xdata = np.arange(XLEN)
 
     # Save teh xdata into the h5py file
-    dataFile = h5py.File('data.h5', 'a')
+    dataFile = h5py.File(FILEOUTPUT, 'a')
     dataFile.create_dataset("xdata", data = xdata)
 
     while counter < NUMSIMS:
@@ -58,15 +57,12 @@ def main():
 
         randNoise(spadPulse, 1)
          
-        ax.plot(xdata, spadPulse)
 
         saveData(spadPulse, afterpulseData, crossTalkData, counter)
         
-        print(f"AP{counter}: {afterpulseData}")
-        print(f"CT{counter}: {crossTalkData}")
+
         counter += 1
 
-    plt.show()
 
 
 #**************************************************************************************
@@ -117,9 +113,14 @@ def crossTalk(ydata, spadPulse, xdata, Pulses):
             spadPulse += ydata
             CTData[0] += 1
         else:
+            time = rand.randint(10, 100)
+            CTData = np.append(CTData, time)
+            for i in range(time, len(ydata)):
+                spadPulse[i] = (spadPulse[i] + (ydata[(i - time)]))
+            
+            
             delayed += 1
     
-  
     CTData[1] = delayed
     return(CTData)
 
@@ -128,7 +129,7 @@ def crossTalk(ydata, spadPulse, xdata, Pulses):
 # make the data file and fill it with data : )
 def saveData(Data2Save, APData, CTData, DataNumber):
     # Open data file
-    dataFile = h5py.File('data.h5', 'a')
+    dataFile = h5py.File(FILEOUTPUT, 'a')
     
     # Append the spad data and truth data to the file
     dataFile.create_dataset(f"SPADPulse{DataNumber}", data = Data2Save)
