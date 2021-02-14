@@ -68,7 +68,7 @@ def main():
         
 
         counter += 1
-        if counter%100 == 0:
+        if counter%10000 == 0:
             print(counter)
 
 
