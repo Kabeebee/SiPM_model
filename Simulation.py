@@ -5,16 +5,16 @@ import h5py
 import matplotlib.pyplot as plt
 
 # Simulation Parameters
-NUMSIMS = 1000000
+NUMSIMS = 250000
 deadTime = 1000
 recoveryTime = 200
 crossTalkProbTotal = 0.25
 neighbours = 4
 crossTalkProb = 1 - (1 - crossTalkProbTotal)**(1/neighbours)
-XLEN = 300000
+XLEN = 150000
 AFTERPULSEPROB = 0.05
 TAU = 50000
-FILEOUTPUT = "LongData.h5"
+FILEOUTPUT = "F:\BigData\LData.h5"
 
 def main():
 
@@ -30,6 +30,12 @@ def main():
     # Save teh xdata into the h5py file
     dataFile = h5py.File(FILEOUTPUT, 'a')
     dataFile.create_dataset("xdata", data = xdata)
+
+    spadPulse = np.zeros(XLEN)
+    ydata.resize(spadPulse.shape)
+    spadPulse = spadPulse + ydata
+
+    dataFile.create_dataset("referenceData", data = spadPulse)
 
     while counter < NUMSIMS:
 
@@ -62,6 +68,8 @@ def main():
         
 
         counter += 1
+        if counter%100 == 0:
+            print(counter)
 
 
 
@@ -130,11 +138,14 @@ def crossTalk(ydata, spadPulse, xdata, Pulses):
 def saveData(Data2Save, APData, CTData, DataNumber):
     # Open data file
     dataFile = h5py.File(FILEOUTPUT, 'a')
-    
-    # Append the spad data and truth data to the file
-    dataFile.create_dataset(f"SPADPulse{DataNumber}", data = Data2Save)
-    dataFile.create_dataset(f"APData{DataNumber}", data = APData)
-    dataFile.create_dataset(f"CTData{DataNumber}", data = CTData)
+    if APData[0] != 0 or CTData[1] != 0 or CTData[0] != 0:
+        # Append the spad data and truth data to the file
+        dataFile.create_dataset(f"SPADPulse{DataNumber}", data = Data2Save)
+        dataFile.create_dataset(f"APData{DataNumber}", data = APData)
+        dataFile.create_dataset(f"CTData{DataNumber}", data = CTData)
+    else:
+        dataFile.create_dataset(f"referenceData{DataNumber}", data = [0])
+
     # Close the file
     dataFile.close()
 
