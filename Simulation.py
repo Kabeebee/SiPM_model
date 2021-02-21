@@ -5,7 +5,7 @@ import h5py
 import matplotlib.pyplot as plt
 
 # Simulation Parameters
-NUMSIMS = 250000
+NUMSIMS = 100
 deadTime = 1000
 recoveryTime = 200
 crossTalkProbTotal = 0.25
@@ -14,7 +14,7 @@ crossTalkProb = 1 - (1 - crossTalkProbTotal)**(1/neighbours)
 XLEN = 150000
 AFTERPULSEPROB = 0.05
 TAU = 50000
-FILEOUTPUT = "F:\BigData\LData.h5"
+FILEOUTPUT = "data.h5"
 
 def main():
 
@@ -66,12 +66,13 @@ def main():
 
         saveData(spadPulse, afterpulseData, crossTalkData, counter)
         
-
+        plt.plot(xdata, spadPulse)
+        
         counter += 1
         if counter%10000 == 0:
             print(counter)
 
-
+    plt.show()
 
 #**************************************************************************************
 # add random fluctuations to data
@@ -94,7 +95,7 @@ def afterpulsing(ydata, spadPulse, xdata, pulses):
             APData = np.append(APData, time)
             
             #scaling factor for pulse amplitude
-            scale = (1 - np.exp(-(time - deadTime)/45)) # still an arbitrary scale factor
+            scale = (1 - np.exp(-(time - deadTime)/4500)) # still an arbitrary scale factor
             APData = np.append(APData, scale)
             
             # Add the pulse on
@@ -144,7 +145,7 @@ def saveData(Data2Save, APData, CTData, DataNumber):
         dataFile.create_dataset(f"APData{DataNumber}", data = APData)
         dataFile.create_dataset(f"CTData{DataNumber}", data = CTData)
     else:
-        dataFile.create_dataset(f"referenceData{DataNumber}", data = [0])
+        dataFile.create_dataset(f"SPADPulse{DataNumber}", data = [0])
 
     # Close the file
     dataFile.close()

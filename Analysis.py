@@ -18,7 +18,7 @@ def main():
     start_time = datetime.now()
     DataLeft = True # DataLeft checks if there is data still left to analyse
     counter = 0     # keeps track of which data set we're on
-
+ 
     timeData, template_pulse = dr.reader("londat.csv")
 
     fig, (ax_orig) = plt.subplots(1, 1, sharex= True)
@@ -43,33 +43,40 @@ def main():
         if data == None:
             DataLeft = False
             break
+    # if data is [0] means that data is simply reference data + noise (which we will add here)
+        elif data == [0]:
+            refdat = readFile.get("referenceData")
+            data = np.array(refdat)
+            data += rand.normal(0, 1, len(data))
+            readFile.close()
+
 
     # there is data here... analysis time
         else:
             data = np.array(data)
             readFile.close()
 
-            numPeaks, peakPositions = calculate_num_peaks(data, template_pulse)
+        numPeaks, peakPositions = calculate_num_peaks(data, template_pulse)
 
-            for i in range(len(peakPositions)):
-                if i != 0:
-                    pulseData.afterPulseTimes.append(peakPositions[i])
-                    amplitude = data[peakPositions[i]]
-                    pulseData.afterPulseAmplitudes.append(amplitude)
-                elif i == 0:
-                    amplitude = data[peakPositions[i]]
-                    CT = calculate_promptCT(amplitude, template_pulse)
-                    pulseData.numPromptCT = CT
+        for i in range(len(peakPositions)):
+            if i != 0:
+                pulseData.afterPulseTimes.append(peakPositions[i])
+                amplitude = data[peakPositions[i]]
+                pulseData.afterPulseAmplitudes.append(amplitude)
+            elif i == 0:
+                amplitude = data[peakPositions[i]]
+                CT = calculate_promptCT(amplitude, template_pulse)
+                pulseData.numPromptCT = CT
                 
-            pulseData.numAfterPulses = numPeaks - 1
+        pulseData.numAfterPulses = numPeaks - 1
 
-            counter += 1
-            print("-------- pulse No:%d --------" % (counter))
-            print("Number of afterpulses: %d" % pulseData.numAfterPulses)
-            if pulseData.numAfterPulses != 0:
-                print("Afterpulse Time(s): %s" % str(pulseData.afterPulseTimes))
-                print("Afterpulse amplitude(s): %s" % str(pulseData.afterPulseAmplitudes))
-            print("Number of Prompt CTs: %d" % pulseData.numPromptCT)
+        counter += 1
+        print("-------- pulse No:%d --------" % (counter))
+        print("Number of afterpulses: %d" % pulseData.numAfterPulses)
+        if pulseData.numAfterPulses != 0:
+            print("Afterpulse Time(s): %s" % str(pulseData.afterPulseTimes))
+            print("Afterpulse amplitude(s): %s" % str(pulseData.afterPulseAmplitudes))
+        print("Number of Prompt CTs: %d" % pulseData.numPromptCT)
 
     stop_time = datetime.now()
     run_time = stop_time - start_time
