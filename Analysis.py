@@ -13,6 +13,12 @@ class Pulse:
         self.afterPulseTimes = []
         self.afterPulseAmplitudes = []
         self.numPromptCT = 0
+        self.numDelayedCT = 0
+        self.DelayedCTTimes = []
+        self.DelayedCTAmplitudes = []
+        self.PulseAmplitude = 0
+        
+
 
 def main():
     start_time = datetime.now()
