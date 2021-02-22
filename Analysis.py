@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from scipy import signal
 from datetime import datetime
 from scipy.optimize import curve_fit
+from tqdm import tqdm
 
 #**************************************************************************************
 class Pulse:
@@ -22,11 +23,11 @@ class Pulse:
 
 
 def main():
-    start_time = datetime.now()
     DataLeft = True # DataLeft checks if there is data still left to analyse
     counter = 0     # keeps track of which data set we're on
  
     timeData, template_pulse = dr.reader("londat.csv")
+    template_pulse = np.resize(template_pulse, 100)
 
     fig, (ax_orig) = plt.subplots(1, 1, sharex= True)
 
@@ -40,67 +41,56 @@ def main():
     # load in y-data sets sequentially 
 
     while DataLeft:
+        for i in tqdm(range(200)):
 
-        pulseData = Pulse()
+            pulseData = Pulse()
 
-        readFile = h5py.File('data.h5', 'r')
-        data = readFile.get("SPADPulse%d" % counter)
+            readFile = h5py.File('data.h5', 'r')
+            data = readFile.get("SPADPulse%d" % counter)
 
-    # if there is no data stored under that name, we are out of data. stop the loop
-        if data == None:
-            DataLeft = False
-            break
-    # if data is [0] means that data is simply reference data + noise (which we will add here)
-        elif data == [0]:
-            refdat = readFile.get("referenceData")
-            data = np.array(refdat)
-            data += rand.normal(0, 1, len(data))
-            readFile.close()
+        # if there is no data stored under that name, we are out of data. stop the loop
+            if data == None:
+                DataLeft = False
+                break
+        # if data is [0] means that data is simply reference data + noise (which we will add here)
+            elif data == [0]:
+                refdat = readFile.get("referenceData")
+                data = np.array(refdat)
+                data += rand.normal(0, 1, len(data))
+                readFile.close()
 
+        # there is data here... analysis time
+            else:
+                data = np.array(data)
+                readFile.close()
 
-    # there is data here... analysis time
-        else:
-            data = np.array(data)
-            readFile.close()
+            # try and collect initial guess values to make curve fit easier
 
-        # try and collect initial guess values to make curve fit easier
+            numPeaks, peakPositions = calculate_num_peaks(data, template_pulse)
 
-        numPeaks, peakPositions = calculate_num_peaks(data, template_pulse)
+            for i in range(len(peakPositions)):
+                if i != 0:
+                    pulseData.afterPulseTimes.append(peakPositions[i])
+                    amplitude = data[peakPositions[i]]
+                    pulseData.afterPulseAmplitudes.append(amplitude)
+                elif i == 0:
+                    amplitude = data[peakPositions[i]]
+                    CT = calculate_promptCT(amplitude, template_pulse)
+                    pulseData.numPromptCT = CT
+                    
+            pulseData.numAfterPulses = numPeaks - 1
 
-        for i in range(len(peakPositions)):
-            if i != 0:
-                pulseData.afterPulseTimes.append(peakPositions[i])
-                amplitude = data[peakPositions[i]]
-                pulseData.afterPulseAmplitudes.append(amplitude)
-            elif i == 0:
-                amplitude = data[peakPositions[i]]
-                CT = calculate_promptCT(amplitude, template_pulse)
-                pulseData.numPromptCT = CT
-                
-        pulseData.numAfterPulses = numPeaks - 1
+            # curve fit time (cross fingers)
 
-        # curve fit time (cross fingers)
+            initguess = (pulseData.numPromptCT, #amplitude
+                        4.0,                   #onset time
+                        1.0,                   #rise time
+                        5.0,                   #sharp decay time
+                        1000.0)                #long decay time
 
-        initguess = (pulseData.numPromptCT, #amplitude
-                     4.0,                   #onset time
-                     1.0,                   #rise time
-                     5.0,                   #sharp decay time
-                     1000.0)                #long decay time
-                     
-        fitParams, fitCovariances = curve_fit(pulseFitFunc, xdata, data, p0 = initguess)
-        print(fitParams)
+            fitParams, fitCovariances = curve_fit(pulseFitFunc, xdata, data, p0 = initguess)
 
-        counter += 1
-        print("-------- pulse No:%d --------" % (counter))
-        print("Number of afterpulses: %d" % pulseData.numAfterPulses)
-        if pulseData.numAfterPulses != 0:
-            print("Afterpulse Time(s): %s" % str(pulseData.afterPulseTimes))
-            print("Afterpulse amplitude(s): %s" % str(pulseData.afterPulseAmplitudes))
-        print("Number of Prompt CTs: %d" % pulseData.numPromptCT)
-
-    stop_time = datetime.now()
-    run_time = stop_time - start_time
-    print("Total run time (h:m:s):   %s" % str(run_time))
+            counter += 1
 
 
 def calculate_num_peaks(data, template):
