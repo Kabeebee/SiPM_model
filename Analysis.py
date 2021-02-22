@@ -25,6 +25,7 @@ class Pulse:
 def main():
     DataLeft = True # DataLeft checks if there is data still left to analyse
     counter = 0     # keeps track of which data set we're on
+    numsims = 100
  
     timeData, template_pulse = dr.reader("londat.csv")
     template_pulse = np.resize(template_pulse, 100)
@@ -39,9 +40,8 @@ def main():
     readFile.close
 
     # load in y-data sets sequentially 
-
     while DataLeft:
-        for i in tqdm(range(200)):
+        for i in tqdm(range(numsims)):
 
             pulseData = Pulse()
 
