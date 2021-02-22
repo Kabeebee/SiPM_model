@@ -5,6 +5,7 @@ import h5py
 import matplotlib.pyplot as plt
 from scipy import signal
 from datetime import datetime
+from scipy.optimize import curve_fit
 
 #**************************************************************************************
 class Pulse:
@@ -62,6 +63,8 @@ def main():
             data = np.array(data)
             readFile.close()
 
+        # try and collect initial guess values to make curve fit easier
+
         numPeaks, peakPositions = calculate_num_peaks(data, template_pulse)
 
         for i in range(len(peakPositions)):
@@ -75,6 +78,17 @@ def main():
                 pulseData.numPromptCT = CT
                 
         pulseData.numAfterPulses = numPeaks - 1
+
+        # curve fit time (cross fingers)
+
+        initguess = (pulseData.numPromptCT, #amplitude
+                     4.0,                   #onset time
+                     1.0,                   #rise time
+                     5.0,                   #sharp decay time
+                     1000.0)                #long decay time
+                     
+        fitParams, fitCovariances = curve_fit(pulseFitFunc, xdata, data, p0 = initguess)
+        print(fitParams)
 
         counter += 1
         print("-------- pulse No:%d --------" % (counter))
@@ -106,6 +120,15 @@ def calculate_promptCT(amplitude, template):
     PE = np.amax(template) # one photon energy is the max value in the archetype pulse
     ampInPE = (amplitude/PE)
     return ampInPE
+
+def pulseFitFunc(t, scale, onset, taurise, taushort, taulong):
+    ''' pulse model function to work with numpy.'''
+    temp1  = np.exp(-(t - onset) / taushort)
+    temp2  = np.exp(-(t - onset) / taulong)
+    decay = temp1 + temp2
+    pulse = -scale * (np.exp(-(t - onset) / taurise) - decay)
+    pulse[np.where(t < onset)] = 0.0 # not defined before onset time, set 0
+    return pulse
 
 if __name__ == '__main__':
     main()
