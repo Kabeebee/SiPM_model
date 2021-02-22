@@ -21,6 +21,7 @@ class Pulse:
         
 
 
+
 def main():
     start_time = datetime.now()
     DataLeft = True # DataLeft checks if there is data still left to analyse
@@ -39,13 +40,17 @@ def main():
 
     # load in y-data sets sequentially 
 
+    numAP = 0
+    numCT = 0
+    trueAP = 0
+    trueCT = 0
     while DataLeft:
 
         pulseData = Pulse()
 
         readFile = h5py.File('data.h5', 'r')
         data = readFile.get("SPADPulse%d" % counter)
-
+     
     # if there is no data stored under that name, we are out of data. stop the loop
         if data == None:
             DataLeft = False
@@ -55,11 +60,18 @@ def main():
             refdat = readFile.get("referenceData")
             data = np.array(refdat)
             data += rand.normal(0, 1, len(data))
+            doTruth = False
             readFile.close()
 
 
     # there is data here... analysis time
         else:
+            truthAP = readFile.get("APData%d" % counter)
+            truthCT = readFile.get("CTData%d" % counter)
+            truthAP = np.array(truthAP)
+            truthCT = np.array(truthCT)
+            
+            doTruth = True
             data = np.array(data)
             readFile.close()
 
@@ -97,10 +109,21 @@ def main():
             print("Afterpulse Time(s): %s" % str(pulseData.afterPulseTimes))
             print("Afterpulse amplitude(s): %s" % str(pulseData.afterPulseAmplitudes))
         print("Number of Prompt CTs: %d" % pulseData.numPromptCT)
+        if doTruth == True:
+            trueAP += truthAP[0] 
+            trueCT += truthCT[0]
+        numAP += pulseData.numAfterPulses
+        numCT += pulseData.numPromptCT
 
+
+
+
+    print(f"Afterpulses found: {numAP}/{trueAP}")
+    print(f"Prompt Cross Talk found: {numCT}/{trueCT}")
     stop_time = datetime.now()
     run_time = stop_time - start_time
     print("Total run time (h:m:s):   %s" % str(run_time))
+
 
 
 def calculate_num_peaks(data, template):
