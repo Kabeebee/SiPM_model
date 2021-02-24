@@ -96,14 +96,7 @@ def main():
                 amplitude = data[peakPositions[i]]
                 CT = calculate_promptCT(amplitude, template_pulse)
                 pulseData.numPromptCT = CT
-                
-        pulseData.numAfterPulses = numPeaks - 1
-        if pulseData.numAfterPulses != 0:
-            try:
-                print(f"{pulseData.afterPulseTimes[0]}/{TruthCT[2]}")
-            except:
-                i = i
-            
+                          
         # curve fit time (cross fingers)
 
         initguess = (pulseData.numPromptCT, #amplitude
