@@ -43,8 +43,10 @@ def main():
 
     trueAP = 0
     trueCT = 0
+    trueCTD = 0
     countAP = 0
     countCT = 0
+    countCTD = 0
 
     allTimes = np.array([])
 
@@ -81,10 +83,11 @@ def main():
         # try and collect initial guess values to make curve fit easier
 
         numPeaks, peakPositions = calculate_num_peaks(data, template_pulse)
+        if counter == 51:
+            print(f"Number of peaks: {numPeaks} \n at: {peakPositions}")
 
         for i in range(len(peakPositions)):
             if i != 0:
-                #print(peakPositions[i])
                 pulseData.afterPulseTimes.append(peakPositions[i])
                 amplitude = data[peakPositions[i]]
                 pulseData.afterPulseAmplitudes.append(amplitude)
@@ -100,7 +103,7 @@ def main():
                 print(f"{pulseData.afterPulseTimes[0]}/{TruthCT[2]}")
             except:
                 i = i
-            allTimes = np.append(allTimes, pulseData.afterPulseTimes[0])
+            
         # curve fit time (cross fingers)
 
         initguess = (pulseData.numPromptCT, #amplitude
@@ -115,13 +118,25 @@ def main():
         if doTrue == True:
             trueAP += TruthAP[0]
             trueCT += TruthCT[0]
-        countAP += pulseData.numAfterPulses
+            trueCTD += TruthCT[1]
+        if pulseData.numAfterPulses > 0:
+            for i in pulseData.afterPulseTimes:
+                if i < 1000:
+                    countCTD += 1
+                else:
+                    countAP += 1
+                    allTimes = np.append(allTimes, i)
+        
+    
+        
         countCT += pulseData.numPromptCT
 
         counter += 1
 
+
     print(f"Found AP: {countAP}/{trueAP}")
     print(f"Found CT: {countCT}/{trueCT}")
+    print(f"Found CTD: {countCTD}/{trueCT}")
     print(allTimes)
 
 
@@ -132,7 +147,7 @@ def calculate_num_peaks(data, template):
 
     # find the number of peaks in the matched filter data which is the same as for
     # the raw data. This should account for pulses overlapping
-    peaks = signal.find_peaks(filtered_data, height=0.97)
+    peaks = signal.find_peaks(filtered_data, height=0.1)
     num_peaks = len(peaks[1]['peak_heights'])
     peak_positions = peaks[0]
     return num_peaks, peak_positions
