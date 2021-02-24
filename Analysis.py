@@ -58,11 +58,12 @@ def main():
         readFile = h5py.File('data.h5', 'r')
         data = readFile.get("SPADPulse%d" % counter)
 
+    # Loading in all data
         # if there is no data stored under that name, we are out of data. stop the loop
         if data == None:
             DataLeft = False
             break
-    # if data is [0] means that data is simply reference data + noise (which we will add here)
+        # if data is [0] means that data is simply reference data + noise (which we will add here)
         elif np.size(data) == 1:
             refdat = readFile.get("referenceData")
             data = np.array(refdat)
@@ -70,7 +71,7 @@ def main():
             doTrue = False
             readFile.close()
 
-    # there is data here... analysis time
+        # there is data here... analysis time
         else:
             TruthAP = readFile.get("APData%d" % counter)
             TruthCT = readFile.get("CTData%d" % counter)
@@ -80,7 +81,7 @@ def main():
             doTrue = True
             readFile.close()
 
-        # try and collect initial guess values to make curve fit easier
+    # try and collect initial guess values to make curve fit easier by searching for peaks
 
         numPeaks, peakPositions = calculate_num_peaks(data, template_pulse)
         if counter == 51:
@@ -96,18 +97,8 @@ def main():
                 amplitude = data[peakPositions[i]]
                 CT = calculate_promptCT(amplitude, template_pulse)
                 pulseData.numPromptCT = CT
-                          
-        # curve fit time (cross fingers)
 
-        initguess = (pulseData.numPromptCT, #amplitude
-                    4.0,                   #onset time
-                    1.0,                   #rise time
-                    5.0,                   #sharp decay time
-                    1000.0)                #long decay time
-
-        # fitParams, fitCovariances = curve_fit(pulseFitFunc, xdata, data, p0 = initguess)
-
-
+        # Collect data on total number of afterpulses and cross talks found vs how many there actually are.
         if doTrue == True:
             trueAP += TruthAP[0]
             trueCT += TruthCT[0]
@@ -120,9 +111,19 @@ def main():
                     countAP += 1
                     allTimes = np.append(allTimes, i)
         
-    
-        
         countCT += pulseData.numPromptCT
+        
+            
+        # curve fit time (cross fingers)
+        initguess = (pulseData.numPromptCT, #amplitude
+                    4.0,                   #onset time
+                    1.0,                   #rise time
+                    5.0,                   #sharp decay time
+                    1000.0)                #long decay time
+
+        fitParams, fitCovariances = curve_fit(pulseFitFunc, xdata, data, p0 = initguess)
+
+
 
         counter += 1
 
