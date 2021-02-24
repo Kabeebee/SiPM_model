@@ -95,7 +95,7 @@ def afterpulsing(ydata, spadPulse, xdata, pulses):
             APData = np.append(APData, time)
             
             #scaling factor for pulse amplitude
-            scale = (1 - np.exp(-(time - deadTime)/4500)) # still an arbitrary scale factor
+            scale = (1 - np.exp(-(time - deadTime)/2000)) # designed to be at 0.99 scale at 10000 according to darkside
             APData = np.append(APData, scale)
             
             # Add the pulse on
