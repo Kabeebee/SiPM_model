@@ -14,7 +14,7 @@ crossTalkProb = 1 - (1 - crossTalkProbTotal)**(1/neighbours)
 XLEN = 150000
 AFTERPULSEPROB = 0.05
 TAU = 50000
-FILEOUTPUT = "data.h5"
+FILEOUTPUT = "datasda.h5"
 
 def main():
 
