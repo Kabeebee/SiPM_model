@@ -113,28 +113,28 @@ def main():
                           
         # curve fit time (cross fingers)
         initguess = []
-        initguess.append(pulseData.numPromptCT, #amplitude
-                        0.0,                   #onset time
-                        4.0,                   #rise time
-                        5.0,                   #sharp decay time
-                        1000.0)                #long decay time
-        for i in range(Pulse.numAfterPulses)):
-            initguess.append(Pulse.afterPulseAmplitudes[i],
-                             Pulse.afterPulseTimes[i],     
-                             4.0,                           
-                             5.0,                           
-                             1000.0)  
-        for i in range(Pulse.numDelayedCT)):
-            initguess.append(Pulse.DelayedCTAmplitudes[i],
-                             Pulse.DelayedCTTimes[i],     
-                             4.0,                           
-                             5.0,                           
-                             1000.0)                       
+        initguess.append(pulseData.numPromptCT) #amplitude
+        initguess.append(0.0)                   #onset time
+        initguess.append(4.0)                   #rise time
+        initguess.append(5.0)                   #sharp decay time
+        initguess.append(1000.0)                #long decay time
+        for i in range(Pulse.numAfterPulses):
+            initguess.append(Pulse.afterPulseAmplitudes[i])
+            initguess.append(Pulse.afterPulseTimes[i])     
+            initguess.append(4.0)                          
+            initguess.append(5.0)                           
+            initguess.append(1000.0)  
+        for i in range(Pulse.numDelayedCT):
+            initguess.append(Pulse.DelayedCTAmplitudes[i])
+            initguess.append(Pulse.DelayedCTTimes[i])     
+            initguess.append(4.0)                          
+            initguess.append(5.0)                          
+            initguess.append(1000.0)                       
 
         try:
             fitParams, fitCovariances = curve_fit(pulse_superpositions, xdata, data, p0 = initguess)
         except (RuntimeError, ValueError):
-            fitParams = None:
+            fitParams = None
 
 
         counter += 1
