@@ -43,10 +43,8 @@ def main():
 
     trueAP = 0
     trueCT = 0
-    trueCTD = 0
     countAP = 0
     countCT = 0
-    countCTD = 0
 
     allTimes = np.array([])
 
@@ -83,11 +81,10 @@ def main():
         # try and collect initial guess values to make curve fit easier
 
         numPeaks, peakPositions = calculate_num_peaks(data, template_pulse)
-        if counter == 51:
-            print(f"Number of peaks: {numPeaks} \n at: {peakPositions}")
 
         for i in range(len(peakPositions)):
             if i != 0:
+                #print(peakPositions[i])
                 pulseData.afterPulseTimes.append(peakPositions[i])
                 amplitude = data[peakPositions[i]]
                 pulseData.afterPulseAmplitudes.append(amplitude)
@@ -103,40 +100,44 @@ def main():
                 print(f"{pulseData.afterPulseTimes[0]}/{TruthCT[2]}")
             except:
                 i = i
-            
+            allTimes = np.append(allTimes, pulseData.afterPulseTimes[0])
         # curve fit time (cross fingers)
 
-        initguess = (pulseData.numPromptCT, #amplitude
-                    4.0,                   #onset time
-                    1.0,                   #rise time
-                    5.0,                   #sharp decay time
-                    1000.0)                #long decay time
 
-        # fitParams, fitCovariances = curve_fit(pulseFitFunc, xdata, data, p0 = initguess)
+        initguess = []
+        initguess.append(pulseData.numPromptCT, #amplitude
+                        0.0,                   #onset time
+                        4.0,                   #rise time
+                        5.0,                   #sharp decay time
+                        1000.0)                #long decay time
+        for i in range(Pulse.numAfterPulses)):
+            initguess.append(Pulse.afterPulseAmplitudes[i],
+                             Pulse.afterPulseTimes[i],     
+                             4.0,                           
+                             5.0,                           
+                             1000.0)  
+        for i in range(Pulse.numDelayedCT)):
+            initguess.append(Pulse.DelayedCTAmplitudes[i],
+                             Pulse.DelayedCTTimes[i],     
+                             4.0,                           
+                             5.0,                           
+                             1000.0)                       
 
+        try:
+            fitParams, fitCovariances = curve_fit(pulse_superpositions, xdata, data, p0 = initguess)
+        except (RuntimeError, ValueError):
+            fitParams = None:
 
         if doTrue == True:
             trueAP += TruthAP[0]
             trueCT += TruthCT[0]
-            trueCTD += TruthCT[1]
-        if pulseData.numAfterPulses > 0:
-            for i in pulseData.afterPulseTimes:
-                if i < 1000:
-                    countCTD += 1
-                else:
-                    countAP += 1
-                    allTimes = np.append(allTimes, i)
-        
-    
-        
+        countAP += pulseData.numAfterPulses
         countCT += pulseData.numPromptCT
 
         counter += 1
 
-
     print(f"Found AP: {countAP}/{trueAP}")
     print(f"Found CT: {countCT}/{trueCT}")
-    print(f"Found CTD: {countCTD}/{trueCT}")
     print(allTimes)
 
 
@@ -147,7 +148,7 @@ def calculate_num_peaks(data, template):
 
     # find the number of peaks in the matched filter data which is the same as for
     # the raw data. This should account for pulses overlapping
-    peaks = signal.find_peaks(filtered_data, height=0.1)
+    peaks = signal.find_peaks(filtered_data, height=0.97)
     num_peaks = len(peaks[1]['peak_heights'])
     peak_positions = peaks[0]
     return num_peaks, peak_positions
@@ -160,8 +161,20 @@ def calculate_promptCT(amplitude, template):
     ampInPE -= 1
     return ampInPE
 
+def pulse_superpositions(t, *pos):
+    ''' add pulses together to make a compund pulse '''
+    pulseSuperPos = 0
+    for i in range(0, len(pos), 5):
+        pulseSuperPos += pulseFitFunc(t, pos[0 + i], 
+                                         pos[1 + i], 
+                                         pos[2 + i], 
+                                         pos[3 + i],
+                                         pos[4 + i],
+                                         pos[5 + i])
+    return pulseSuperPos
+
 def pulseFitFunc(t, scale, onset, taurise, taushort, taulong):
-    ''' pulse model function to work with numpy.'''
+    ''' overdamped harmonic oscillator analytical solution.'''
     temp1  = np.exp(-(t - onset) / taushort)
     temp2  = np.exp(-(t - onset) / taulong)
     decay = temp1 + temp2
