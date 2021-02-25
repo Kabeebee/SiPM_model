@@ -121,15 +121,15 @@ def main():
         initguess.append(4.0)                   #rise time
         initguess.append(5.0)                   #sharp decay time
         initguess.append(1000.0)                #long decay time
-        for i in range(Pulse.numAfterPulses):
-            initguess.append(Pulse.afterPulseAmplitudes[i])
-            initguess.append(Pulse.afterPulseTimes[i])     
+        for i in range(pulseData.numAfterPulses):
+            initguess.append(pulseData.afterPulseAmplitudes[i])
+            initguess.append(pulseData.afterPulseTimes[i])     
             initguess.append(4.0)                          
             initguess.append(5.0)                           
             initguess.append(1000.0)  
-        for i in range(Pulse.numDelayedCT):
-            initguess.append(Pulse.DelayedCTAmplitudes[i])
-            initguess.append(Pulse.DelayedCTTimes[i])     
+        for i in range(pulseData.numDelayedCT):
+            initguess.append(pulseData.DelayedCTAmplitudes[i])
+            initguess.append(pulseData.DelayedCTTimes[i])     
             initguess.append(4.0)                          
             initguess.append(5.0)                          
             initguess.append(1000.0)                       
@@ -141,6 +141,7 @@ def main():
 
 
         counter += 1
+        print(counter)
 
     
     print(f"Found AP: {countAP}/{trueAP}")
@@ -177,8 +178,7 @@ def pulse_superpositions(t, *pos):
                                          pos[1 + i], 
                                          pos[2 + i], 
                                          pos[3 + i],
-                                         pos[4 + i],
-                                         pos[5 + i])
+                                         pos[4 + i])
     return pulseSuperPos
 
 def pulseFitFunc(t, scale, onset, taurise, taushort, taulong):
