@@ -41,10 +41,13 @@ def main():
     xdata = np.array(xdata)
     readFile.close
 
+
     trueAP = 0
     trueCT = 0
+    trueCTD = 0
     countAP = 0
     countCT = 0
+    countCTD = 0
 
     allTimes = np.array([])
 
@@ -139,8 +142,10 @@ def main():
 
         counter += 1
 
+    
     print(f"Found AP: {countAP}/{trueAP}")
-    print(f"Found CT: {countCT}/{trueCT}")
+    print(f"Found CTP: {countCT}/{trueCT}")
+    print(f"Found CTD: {countCTD}/{trueCTD}")
     print(allTimes)
 
 
