@@ -198,7 +198,7 @@ def pulseFitFunc(t, scale, onset, taurise, taushort, taulong, a, b):
     temp1  = np.exp(-(t - onset) / taushort)
     temp2  = np.exp(-(t - onset) / taulong)
     decay = temp1 + temp2
-    pulse = -scale * (np.exp(-(t - onset) / taurise) - decay)
+    pulse = -scale * (np.exp(-(t - (onset + taurise)) / taurise) - decay)
     
     pulse[np.where(t <= (onset + taurise))] = -(t[np.where(t <= (onset + taurise))] - a)*(t[np.where(t <= (onset + taurise))] - b)
     pulse[np.where(t < onset)] = 0.0 # not defined before onset time, set 0
