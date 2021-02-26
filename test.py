@@ -66,35 +66,39 @@ pulseData22 = np.array(pulseData22)
 t = np.array(t)
 
 
-scale = 719.
-onset = -4E-10
-taurise = 4.0
-taushort = 1.3
-taulong = 6.99
-a = -4E-1
-b = 52.
+scale = 169.19
+onset = 0.876
+taurise = 3.35
+taushort = 3.957
+taulong = 10.92
+a = -2.27
+b = 23.88
+c = 3.175
+d = 1.0
 
-scale2 = 256.
-onset2 = 100.
-taurise2 = 4.2
-taushort2 = 1.8
-taulong2 = 7.03
-a2 = 98.5
-b2 = 118.
+scale2 = 173.59
+onset2 = 99.00
+taurise2 = 3.801
+taushort2 = 4.621
+taulong2 = 10.825
+a2 = 385.49
+b2 = 411.396
+c2 =3.909
+d2 =1
 
-temp1  = np.exp(-(t - onset) / taushort)
-temp2  = np.exp(-(t - onset) / taulong)
+temp1  = np.exp(-(t - (onset + taurise)) / taushort)
+temp2  = np.exp(-(t - (onset + taurise)) / taulong)
 decay = temp1 + temp2
-pulse = -scale * (np.exp(-(t - onset) / taurise) - decay)
-pulse[np.where(t<=onset+taurise)] = -(t[np.where(t<=onset+taurise)]-a)*(t[np.where(t<=onset+taurise)]-b)
-pulse[np.where(t <= onset)] = 0.0
+pulse = -scale * (np.exp(-(t - (onset + taurise)) / taurise) - decay)
+pulse[np.where(t<onset+taurise)] = -(c * t[np.where(t<onset+taurise)]-onset)*(d * t[np.where(t<onset+taurise)]-b)
+pulse[np.where(t < onset)] = 0.0
 
 temp3  = np.exp(-(t - onset2) / taushort2)
 temp4  = np.exp(-(t - onset2) / taulong2)
 decay2 = temp3 + temp4
 pulse2 = -scale2 * (np.exp(-(t - onset2) / taurise2) - decay2)
-pulse2[np.where(t<=onset2+taurise2)] = -(t[np.where(t<=onset2+taurise2)]-a2)*(t[np.where(t<=onset2+taurise2)]-b2)
-pulse2[np.where(t <= onset2)] = 0.0
+pulse2[np.where(t<onset2+taurise2)] = -(c2 * t[np.where(t<onset2+taurise2)]-a2)*(d2 * t[np.where(t<onset2+taurise2)]-b2)
+pulse2[np.where(t < onset2)] = 0.0
 
 
 
