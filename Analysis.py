@@ -88,7 +88,6 @@ def main():
 
         for i in range(len(peakPositions)):
             if i != 0:
-                #print(peakPositions[i])
                 pulseData.afterPulseTimes.append(peakPositions[i])
                 amplitude = data[peakPositions[i]]
                 pulseData.afterPulseAmplitudes.append(amplitude)
@@ -97,6 +96,8 @@ def main():
                 amplitude = data[peakPositions[i]]
                 CT = calculate_promptCT(amplitude, template_pulse)
                 pulseData.numPromptCT = CT
+
+        pulseData.numAfterPulses = numPeaks - 1
 
         
         # Collect data on total number of afterpulses and cross talks found vs how many there actually are.
@@ -108,6 +109,7 @@ def main():
             for i in pulseData.afterPulseTimes:
                 if i < 1000:
                     countCTD += 1
+                    
                 else:
                     countAP += 1
                     allTimes = np.append(allTimes, i)
@@ -116,23 +118,30 @@ def main():
                           
         # curve fit time (cross fingers)
         initguess = []
-        initguess.append(pulseData.numPromptCT) #amplitude
+        initguess.append(pulseData.numPromptCT * 167) #amplitude
         initguess.append(0.0)                   #onset time
         initguess.append(4.0)                   #rise time
-        initguess.append(5.0)                   #sharp decay time
-        initguess.append(1000.0)                #long decay time
-        for i in range(Pulse.numAfterPulses):
-            initguess.append(Pulse.afterPulseAmplitudes[i])
-            initguess.append(Pulse.afterPulseTimes[i])     
+        initguess.append(1.0)                   #sharp decay time
+        initguess.append(5.0)                   #long decay time
+        initguess.append(4.0)                   
+        initguess.append(12.0) 
+        for i in range(pulseData.numAfterPulses):
+            initguess.append(pulseData.afterPulseAmplitudes[i])
+            initguess.append(pulseData.afterPulseTimes[i])     
             initguess.append(4.0)                          
-            initguess.append(5.0)                           
-            initguess.append(1000.0)  
-        for i in range(Pulse.numDelayedCT):
-            initguess.append(Pulse.DelayedCTAmplitudes[i])
-            initguess.append(Pulse.DelayedCTTimes[i])     
+            initguess.append(1.0)                           
+            initguess.append(5.0)
+            initguess.append(pulseData.afterPulseTimes[i])     
+            initguess.append(pulseData.afterPulseTimes[i] + 8)  
+        for i in range(pulseData.numDelayedCT):
+            initguess.append(pulseData.DelayedCTAmplitudes[i])
+            initguess.append(pulseData.DelayedCTTimes[i])     
             initguess.append(4.0)                          
-            initguess.append(5.0)                          
-            initguess.append(1000.0)                       
+            initguess.append(1.0)                          
+            initguess.append(5.0)
+            initguess.append(pulseData.DelayedCTTimes[i])
+            initguess.append(pulseData.DelayedCTTimes[i] + 8)
+
 
         try:
             fitParams, fitCovariances = curve_fit(pulse_superpositions, xdata, data, p0 = initguess)
@@ -141,6 +150,8 @@ def main():
 
 
         counter += 1
+        print(f"{counter}: {fitParams}")
+    
 
     
     print(f"Found AP: {countAP}/{trueAP}")
@@ -156,7 +167,7 @@ def calculate_num_peaks(data, template):
 
     # find the number of peaks in the matched filter data which is the same as for
     # the raw data. This should account for pulses overlapping
-    peaks = signal.find_peaks(filtered_data, height=0.97)
+    peaks = signal.find_peaks(filtered_data, height=0.1)
     num_peaks = len(peaks[1]['peak_heights'])
     peak_positions = peaks[0]
     return num_peaks, peak_positions
@@ -172,21 +183,24 @@ def calculate_promptCT(amplitude, template):
 def pulse_superpositions(t, *pos):
     ''' add pulses together to make a compund pulse '''
     pulseSuperPos = 0
-    for i in range(0, len(pos), 5):
+    for i in range(0, len(pos), 7):
         pulseSuperPos += pulseFitFunc(t, pos[0 + i], 
                                          pos[1 + i], 
                                          pos[2 + i], 
                                          pos[3 + i],
                                          pos[4 + i],
-                                         pos[5 + i])
+                                         pos[5 + i],
+                                         pos[6 + i])
     return pulseSuperPos
 
-def pulseFitFunc(t, scale, onset, taurise, taushort, taulong):
+def pulseFitFunc(t, scale, onset, taurise, taushort, taulong, a, b):
     ''' overdamped harmonic oscillator analytical solution.'''
     temp1  = np.exp(-(t - onset) / taushort)
     temp2  = np.exp(-(t - onset) / taulong)
     decay = temp1 + temp2
     pulse = -scale * (np.exp(-(t - onset) / taurise) - decay)
+    
+    pulse[np.where(t <= (onset + taurise))] = -(t[np.where(t <= (onset + taurise))] - a)*(t[np.where(t <= (onset + taurise))] - b)
     pulse[np.where(t < onset)] = 0.0 # not defined before onset time, set 0
     return pulse
 
