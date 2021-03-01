@@ -119,34 +119,22 @@ def main():
         # curve fit time (cross fingers)
         initguess = []
         initguess.append(pulseData.numPromptCT * 167) #amplitude
-        initguess.append(0.0)                   #onset time
+        initguess.append(0)                     #onset time
         initguess.append(4.0)                   #rise time
-        initguess.append(1.0)                   #sharp decay time
-        initguess.append(10.0)                  #long decay time
-        initguess.append(0.0)                   
-        initguess.append(8.0) 
-        initguess.append(1.0) 
-        initguess.append(1.0) 
+        initguess.append(4.0)                   #sharp decay time
+        initguess.append(10.0)                  #long decay time                                    
         for i in range(pulseData.numAfterPulses):
             initguess.append(pulseData.afterPulseAmplitudes[i])
             initguess.append(pulseData.afterPulseTimes[i])     
             initguess.append(4.0)                          
-            initguess.append(1.0)                           
-            initguess.append(10.0)
-            initguess.append(pulseData.afterPulseTimes[i])     
-            initguess.append(pulseData.afterPulseTimes[i] + 8)  
-            initguess.append(1.0) 
-            initguess.append(1.0) 
+            initguess.append(4.0)                           
+            initguess.append(10.0)  
         for i in range(pulseData.numDelayedCT):
             initguess.append(pulseData.DelayedCTAmplitudes[i])
             initguess.append(pulseData.DelayedCTTimes[i])     
             initguess.append(4.0)                          
-            initguess.append(1.0)                          
-            initguess.append(10.0)
-            initguess.append(pulseData.DelayedCTTimes[i])
-            initguess.append(pulseData.DelayedCTTimes[i] + 8)
-            initguess.append(1.0) 
-            initguess.append(1.0) 
+            initguess.append(4.0)                          
+            initguess.append(10.0) 
 
 
         try:
@@ -156,8 +144,8 @@ def main():
 
 
         counter += 1
-        if counter == 7:
-            print(f"{counter}: {fitParams}")
+        
+        print(f"{counter}: {fitParams}")
     
 
     
@@ -190,27 +178,21 @@ def calculate_promptCT(amplitude, template):
 def pulse_superpositions(t, *pos):
     ''' add pulses together to make a compund pulse '''
     pulseSuperPos = 0
-    for i in range(0, len(pos), 9):
+    for i in range(0, len(pos), 5):
         pulseSuperPos += pulseFitFunc(t, pos[0 + i], 
                                          pos[1 + i], 
                                          pos[2 + i], 
                                          pos[3 + i],
-                                         pos[4 + i],
-                                         pos[5 + i],
-                                         pos[6 + i],
-                                         pos[7 + i],
-                                         pos[8 + i])
+                                         pos[4 + i])
     return pulseSuperPos
 
-def pulseFitFunc(t, scale, onset, taurise, taushort, taulong, a, b, c, d):
+def pulseFitFunc(t, scale, onset, taurise, taushort, taulong):
     ''' overdamped harmonic oscillator analytical solution.'''
-    temp1  = np.exp(-(t - (onset + taurise)) / taushort)
-    temp2  = np.exp(-(t - (onset+ taurise)) / taulong)
+    temp1  = np.exp(-(t - onset) / taushort)
+    temp2  = np.exp(-(t - onset) / taulong)
     decay = temp1 + temp2
-    pulse = -scale * (np.exp(-(t - (onset + taurise)) / taurise) - decay)
-    
-    pulse[np.where(t < (onset + taurise))] = -(c * t[np.where(t < (onset + taurise))] - a)*(c * t[np.where(t < (onset + taurise))] - b)
-    pulse[np.where(t < onset)] = 0.0 # not defined before onset time, set 0
+    pulse = -scale * (np.exp(-(t - onset) / taurise) - decay)
+    #pulse[np.where(t < onset)] = 0.0 # not defined before onset time, set 0
     return pulse
 
 if __name__ == '__main__':
