@@ -120,19 +120,22 @@ def main():
         initguess = []
         initguess.append(pulseData.numPromptCT * 167) #amplitude
         initguess.append(0)                     #onset time
-        initguess.append(4.0)                   #rise time
+        initguess.append(2.0)                   #rise time
+        initguess.append(5.0)                   #rise time long
         initguess.append(4.0)                   #sharp decay time
         initguess.append(10.0)                  #long decay time                                    
         for i in range(pulseData.numAfterPulses):
             initguess.append(pulseData.afterPulseAmplitudes[i])
-            initguess.append(pulseData.afterPulseTimes[i])     
-            initguess.append(4.0)                          
+            initguess.append(pulseData.afterPulseTimes[i]- 4)     
+            initguess.append(2.0)  
+            initguess.append(5.0)                          
             initguess.append(4.0)                           
             initguess.append(10.0)  
         for i in range(pulseData.numDelayedCT):
             initguess.append(pulseData.DelayedCTAmplitudes[i])
-            initguess.append(pulseData.DelayedCTTimes[i])     
-            initguess.append(4.0)                          
+            initguess.append(pulseData.DelayedCTTimes[i] - 4)     
+            initguess.append(2.0)  
+            initguess.append(5.0)                          
             initguess.append(4.0)                          
             initguess.append(10.0) 
 
@@ -178,21 +181,22 @@ def calculate_promptCT(amplitude, template):
 def pulse_superpositions(t, *pos):
     ''' add pulses together to make a compund pulse '''
     pulseSuperPos = 0
-    for i in range(0, len(pos), 5):
+    for i in range(0, len(pos), 6):
         pulseSuperPos += pulseFitFunc(t, pos[0 + i], 
                                          pos[1 + i], 
                                          pos[2 + i], 
                                          pos[3 + i],
-                                         pos[4 + i])
+                                         pos[4 + i],
+                                         pos[5 + i])
     return pulseSuperPos
 
-def pulseFitFunc(t, scale, onset, taurise, taushort, taulong):
+def pulseFitFunc(t, scale, onset, taurise, tauriselong, taushort, taulong):
     ''' overdamped harmonic oscillator analytical solution.'''
     temp1  = np.exp(-(t - onset) / taushort)
     temp2  = np.exp(-(t - onset) / taulong)
     decay = temp1 + temp2
-    pulse = -scale * (np.exp(-(t - onset) / taurise) - decay)
-    #pulse[np.where(t < onset)] = 0.0 # not defined before onset time, set 0
+    pulse = - scale * (np.exp(-(t - onset) / taurise) + np.exp(-(t - onset) / tauriselong) - decay)
+    pulse[np.where(t < onset)] = 0.0 # not defined before onset time, set 0
     return pulse
 
 if __name__ == '__main__':
