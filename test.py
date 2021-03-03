@@ -50,7 +50,7 @@ def plotpulse(xval,yval,pulse1,pulse2):
     axis1 = fig.add_axes([0.12, 0.1, 0.85, 0.85]) # main axes
     axis1.plot(xval, yval, 'r-')
     axis1.plot(xval, pulse1, 'b-')
-    #axis1.plot(xval, pulse2, 'g-')
+    axis1.plot(xval, pulse2, 'g-')
     axis1.set_title('Dark Matter detector pulse', size=12)
     axis1.set_xlabel('Time [ns]', size=12)
     axis1.set_ylabel('Bias [mV]', size=12)
@@ -66,20 +66,20 @@ pulseData22 = np.array(pulseData22)
 t = np.array(t)
 
 
-scale = 1.69766873e+02
-onset = -1.44362685e-02
-taurise = 1.23049988e+00
-tauriselong = 2.86445752e+00
-taushort = 7.08704322e+00
-taulong = 1.18153265e+01
+scale = 3.21553988e+02
+onset = -2.54059274e-06
+taurise = 1.65380240e+00
+tauriselong = 4.92097753e+00
+taushort =  4.21741858e+00
+taulong = 1.01444488e+01
 
 
-scale2 = 173.88
-onset2 = 99
-taurise2 = 1.187
-tauriselong2 = 2.9944
-taushort2 = 6.875
-taulong2 = 11.86
+scale2 = 1.58923801e+02
+onset2 = -6.69606635e-03
+taurise2 = 1.19690101e+00
+tauriselong2 = 2.54068511e+00
+taushort2 =  7.61608389e+00
+taulong2 = 1.19584934e+01
 
 temp1  = np.exp(-(t - (onset)) / taushort)
 temp2  = np.exp(-(t - (onset)) / taulong)

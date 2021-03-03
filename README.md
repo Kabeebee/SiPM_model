@@ -25,3 +25,12 @@ followed by:
 5: a (left root of quadratic)
 6: b (right root of quadratic)
 
+# data found format
+
+0: counted afterpulses
+1: counted prompt crosstalks
+2: counted delayed crosstalks
+3: truth afterpulses
+4: truth prompt crosstalks
+5: truth delayed crosstalks
+
