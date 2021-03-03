@@ -137,19 +137,21 @@ def analyse(startnum, endnum, lock):
             initguess.append(8.0)                          
             initguess.append(10.0) 
 
-
+        #try-except to fit data
         try:
             fitParams, fitCovariances = curve_fit(pulse_superpositions, xdata, data, p0 = initguess)
         except (RuntimeError, ValueError):
             fitParams = None
 
+        # use lock to ensure the therads arenot accessing the file at teh same time and potentially currupting the data
         with lock:
             dataFile = h5py.File("output.h5", 'a')
             dataFile.create_dataset(f"Parameters{counter}", data = fitParams)
             dataFile.close()
 
         counter += 1
-    
+
+    print(f"thread{counter/25} complete!")
     return([countAP, countCT, countCTD, trueAP, trueCT, trueCTD])
 
     
@@ -199,12 +201,14 @@ def pulseFitFunc(t, scale, onset, taurise, tauriselong, taushort, taulong):
 
 def main():
 
+    # initialise variables and lock object required for multi threading
     lock = threading.Lock()
     ana1_value = []
     ana2_value = []
     ana3_value = []
     ana4_value = []
 
+    # run multithread
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
         ana1 = executor.submit(analyse, 0, 25, lock)
         ana2 = executor.submit(analyse, 25, 50, lock)
