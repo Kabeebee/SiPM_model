@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from scipy import signal
 from datetime import datetime
 from scipy.optimize import curve_fit
-from tqdm import tqdm
 import threading
 import concurrent.futures
 
@@ -36,7 +35,7 @@ def analyse(startnum, endnum, lock):
     readFile = h5py.File('data.h5', 'r')
     xdata = readFile.get('xdata')
     xdata = np.array(xdata)
-    readFile.close
+    readFile.close()
 
 
     trueAP = 0
@@ -47,15 +46,15 @@ def analyse(startnum, endnum, lock):
     countCTD = 0
 
     allTimes = np.array([])
-    checkamp = []
 
     # load in y-data sets sequentially 
     while counter < numsims:
         
         pulseData = Pulse()
-
-        readFile = h5py.File('data.h5', 'r')
-        data = readFile.get("SPADPulse%d" % counter)
+        data = 0
+        with lock:
+            readFile = h5py.File('data.h5', 'r')
+            data = readFile.get("SPADPulse%d" % counter)
 
     # Loading in all data
         # if there is no data stored under that name, we are out of data. stop the loop
@@ -64,18 +63,23 @@ def analyse(startnum, endnum, lock):
             break
         # if data is [0] means that data is simply reference data + noise (which we will add here)
         elif np.size(data) == 1:
-            refdat = readFile.get("referenceData")
-            data = np.array(refdat)
+            
+            with lock:
+                refdat = readFile.get("referenceData")
+                data = np.array(refdat)
             data += rand.normal(0, 2, len(data))
             doTrue = False
             readFile.close()
 
         # there is data here... analysis time
         else:
-            TruthAP = readFile.get("APData%d" % counter)
-            TruthCT = readFile.get("CTData%d" % counter)
-            TruthAP = np.array(TruthAP)
-            TruthCT = np.array(TruthCT)
+            TruthAP = 0
+            TruthCT = 0
+            with lock:
+                TruthAP = readFile.get("APData%d" % counter)
+                TruthCT = readFile.get("CTData%d" % counter)
+                TruthAP = np.array(TruthAP)
+                TruthCT = np.array(TruthCT)
             data = np.array(data)
             doTrue = True
             readFile.close()
