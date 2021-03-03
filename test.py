@@ -6,14 +6,11 @@ import numpy as np
 from scipy.optimize import curve_fit
 
 def getAP():
-    readFile = h5py.File('data.h5', 'r')
+    readFile = h5py.File('output.h5', 'r')
     for i in range(0,100):
-        spad = readFile.get(f"SPADPulse{i}")
-        if np.size(spad) != 1:
-            ap = readFile.get(f"APData{i}")
-            ap = np.array(ap)
-            if np.size(ap) != 1:
-                print(ap)
+        spad = readFile.get(f"Parameters{i}")
+        spad = np.array(spad)
+        print(spad)
 
 
 def plotAP(): 
@@ -95,5 +92,5 @@ pulse2[np.where(t < onset2)] = 0.0
 
 
 
-plotpulse(t, pulseData22, pulse, pulse2)
+getAP()
 
