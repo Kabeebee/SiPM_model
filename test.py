@@ -7,11 +7,14 @@ from scipy.optimize import curve_fit
 
 def getAP():
     readFile = h5py.File('output.h5', 'r')
+    amps = []
     for i in range(0,100):
         spad = readFile.get(f"Parameters{i}")
         spad = np.array(spad)
-        print(spad)
+        amps.append(spad[0])
 
+    plt.scatter(range(100), amps)
+    plt.show()
 
 def plotAP(): 
     readFile = h5py.File('data.h5', 'r')
