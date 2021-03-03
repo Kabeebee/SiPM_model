@@ -215,7 +215,7 @@ def main():
         ana3_value = ana3.result()
         ana4_value = ana4.result()
 
-    countAP = ana1_value[3] + ana2_value[3] + ana3_value[3] + ana4_value[3]
+    countAP = ana1_value[0] + ana2_value[0] + ana3_value[0] + ana4_value[0]
     countCT = ana1_value[1] + ana2_value[1] + ana3_value[1] + ana4_value[1]
     countCTD = ana1_value[2] + ana2_value[2] + ana3_value[2] + ana4_value[2]
     trueAP = ana1_value[3] + ana2_value[3] + ana3_value[3] + ana4_value[3]
