@@ -28,9 +28,9 @@ def analyse(counter, lock):
     # keeps track of which data set we're on
 
 
-    timeData, template_pulse = 0, 0
+    template_pulse = 0
     with lock:
-        timeData, template_pulse = dr.reader("londat.csv")
+        _, template_pulse = dr.reader("londat.csv")
     template_pulse = np.resize(template_pulse, 6)
 
     # load in the x-data once
@@ -58,7 +58,7 @@ def analyse(counter, lock):
         data = np.array(data)
         readFile.close()
 
-# Loading in all data
+    #Loading in all data
     # if data is [0] means that data is simply reference data + noise (which we will add here)
     if np.size(data) == 1:
         
@@ -86,7 +86,7 @@ def analyse(counter, lock):
         doTrue = True
         readFile.close()
 
-# try and collect initial guess values to make curve fit easier by searching for peaks
+    # try and collect initial guess values to make curve fit easier by searching for peaks
 
     numPeaks, peakPositions = calculate_num_peaks(data, template_pulse)
 
@@ -144,7 +144,7 @@ def analyse(counter, lock):
 
     #try-except to fit data
     try:
-        fitParams, fitCovariances = curve_fit(pulse_superpositions, xdata, data, p0 = initguess)
+        fitParams, _= curve_fit(pulse_superpositions, xdata, data, p0 = initguess)
     except (RuntimeError, ValueError):
         fitParams = None
 
@@ -156,9 +156,6 @@ def analyse(counter, lock):
 
     print(f"thread {counter} complete!")
     return([countAP, countCT, countCTD, trueAP, trueCT, trueCTD])
-
-    
-
 
 def calculate_num_peaks(data, template):
     # step 1, apply a matched filter with the archetype pulse to clean up signal.
@@ -208,14 +205,15 @@ def main():
     # initialise variables and lock object required for multi threading
     lock = threading.Lock()
     ana1_value = [0, 0, 0, 0, 0, 0]
-    maxValue = 100
+    endval = 10
+    startval = 0
     locks = []
 
-    for i in range(maxValue):
+    for i in range(startval, endval):
         locks.append(lock)
     # run multithread
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-        ana = executor.map(analyse, range(maxValue), locks)
+        ana = executor.map(analyse, range(startval, endval), locks)
         for i in ana:
             for p in range(0, len(i)):
                 ana1_value[p] += i[p]
@@ -236,7 +234,7 @@ def main():
     minutes = (t - seconds)/60
     hours = (minutes - minutes%60) / 60
     minutes = minutes - hours * 60
-    print(f"Time taken - {int(hours)}:{int(minutes)}:{int(seconds)}")
+    print(f"Time taken -> {int(hours)}:{int(minutes)}:{int(seconds)}")
 
 
 if __name__ == '__main__':
