@@ -14,27 +14,31 @@ crossTalkProb = 1 - (1 - crossTalkProbTotal)**(1/neighbours)
 XLEN = 150000
 AFTERPULSEPROB = 0.05
 TAU = 50000
-FILEOUTPUT = "datasda.h5"
+FILEOUTPUT = "datasdaasdsad.h5"
 
 def main():
-
+    
+    # create output file
     dataFile = h5py.File(FILEOUTPUT, 'w')
     dataFile.close()
 
+    # initialise variables that will be needed in simulation
     counter = 0
     xdata = np.array([])
     ydata = np.array([])
     xdata, ydata = dr.reader("londat.csv")
     xdata = np.arange(XLEN)
 
-    # Save teh xdata into the h5py file
+    # Save the xdata into the h5py file
     dataFile = h5py.File(FILEOUTPUT, 'a')
     dataFile.create_dataset("xdata", data = xdata)
 
+    # reshape the spade data to have the correct number of time points
     spadPulse = np.zeros(XLEN)
     ydata.resize(spadPulse.shape)
     spadPulse = spadPulse + ydata
 
+    # save reference data to data file, this can then just be referenced for pulses with no interesting features
     dataFile.create_dataset("referenceData", data = spadPulse)
 
     while counter < NUMSIMS:
@@ -52,22 +56,25 @@ def main():
         afterPulses = rand.poisson(AFTERPULSEPROB)
         if afterPulses > 0:
             afterpulseData[0] = afterPulses
+            # apply afterpulsing if necessary and save truth data
             afterpulseData = afterpulsing(ydata, spadPulse, xdata, afterPulses)
 
         
     
         crossPulses = rand.binomial(n = neighbours, p=crossTalkProb)
         if crossPulses > 0:
+            # apply crosstalk if necessary and save truth data
             crossTalkData = crossTalk(ydata, spadPulse, xdata, crossPulses)
        
-
-        randNoise(spadPulse, 1)
+        # add the electrical noise (done so that looks visually correct, as would be very system dependent)
+        randNoise(spadPulse, 2)
          
-
+        # save teh data to the output file
         saveData(spadPulse, afterpulseData, crossTalkData, counter)
-        
+
         plt.plot(xdata, spadPulse)
         
+        # measure just to see how far through teh program is
         counter += 1
         if counter%10000 == 0:
             print(counter)
@@ -103,7 +110,7 @@ def afterpulsing(ydata, spadPulse, xdata, pulses):
                 spadPulse[i] = (spadPulse[i] + (ydata[(i - time)])) * scale
 
             #skip over dead time
-            time += 20
+            time += deadTime
             pulsed += 1
             
 
@@ -119,9 +126,11 @@ def crossTalk(ydata, spadPulse, xdata, Pulses):
     CTData = np.array([0, 0])
     for _ in range(0, Pulses):
         if rand.rand() < promptProb:
+            # Addig Prompt Cross talk
             spadPulse += ydata
             CTData[0] += 1
         else:
+            #adding Delayed Crosstalk - time randomly dsitrobuted between 10 & 100 ns as seen in darkside paper
             time = rand.randint(10, 100)
             CTData = np.append(CTData, time)
             for i in range(time, len(ydata)):
@@ -135,16 +144,18 @@ def crossTalk(ydata, spadPulse, xdata, Pulses):
 
 
 #**************************************************************************************
-# make the data file and fill it with data : )
+# fill file with data : )
 def saveData(Data2Save, APData, CTData, DataNumber):
     # Open data file
     dataFile = h5py.File(FILEOUTPUT, 'a')
+    #check to see if there is interesting data
     if APData[0] != 0 or CTData[1] != 0 or CTData[0] != 0:
         # Append the spad data and truth data to the file
         dataFile.create_dataset(f"SPADPulse{DataNumber}", data = Data2Save)
         dataFile.create_dataset(f"APData{DataNumber}", data = APData)
         dataFile.create_dataset(f"CTData{DataNumber}", data = CTData)
     else:
+        # if no afterpulses or cross talks just refer to reference data to save space
         dataFile.create_dataset(f"SPADPulse{DataNumber}", data = [0])
 
     # Close the file

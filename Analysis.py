@@ -68,7 +68,7 @@ def main():
         elif np.size(data) == 1:
             refdat = readFile.get("referenceData")
             data = np.array(refdat)
-            data += rand.normal(0, 1, len(data))
+            data += rand.normal(0, 2, len(data))
             doTrue = False
             readFile.close()
 
