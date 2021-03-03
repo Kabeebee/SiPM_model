@@ -26,16 +26,18 @@ class Pulse:
 def analyse(startnum, endnum, lock):
     counter = startnum     # keeps track of which data set we're on
     numsims = endnum
- 
-    timeData, template_pulse = dr.reader("londat.csv")
+
+    timeData, template_pulse = 0, 0
+    with lock:
+        timeData, template_pulse = dr.reader("londat.csv")
     template_pulse = np.resize(template_pulse, 6)
 
     # load in the x-data once
-
-    readFile = h5py.File('data.h5', 'r')
-    xdata = readFile.get('xdata')
-    xdata = np.array(xdata)
-    readFile.close()
+    with lock:
+        readFile = h5py.File('data.h5', 'r')
+        xdata = readFile.get('xdata')
+        xdata = np.array(xdata)
+        readFile.close()
 
 
     trueAP = 0
@@ -55,6 +57,8 @@ def analyse(startnum, endnum, lock):
         with lock:
             readFile = h5py.File('data.h5', 'r')
             data = readFile.get("SPADPulse%d" % counter)
+            data = np.array(data)
+            readFile.close()
 
     # Loading in all data
         # if there is no data stored under that name, we are out of data. stop the loop
@@ -65,21 +69,25 @@ def analyse(startnum, endnum, lock):
         elif np.size(data) == 1:
             
             with lock:
+                readFile = h5py.File('data.h5', 'r')
                 refdat = readFile.get("referenceData")
                 data = np.array(refdat)
+                readFile.close()
             data += rand.normal(0, 2, len(data))
             doTrue = False
-            readFile.close()
+            
 
         # there is data here... analysis time
         else:
             TruthAP = 0
             TruthCT = 0
             with lock:
+                readFile = h5py.File('data.h5', 'r')
                 TruthAP = readFile.get("APData%d" % counter)
                 TruthCT = readFile.get("CTData%d" % counter)
                 TruthAP = np.array(TruthAP)
                 TruthCT = np.array(TruthCT)
+                readFile.close()
             data = np.array(data)
             doTrue = True
             readFile.close()
