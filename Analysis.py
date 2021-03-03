@@ -7,6 +7,9 @@ from scipy import signal
 from datetime import datetime
 from scipy.optimize import curve_fit
 from tqdm import tqdm
+import threading
+import concurrent.futures
+
 
 
 #**************************************************************************************
@@ -20,19 +23,13 @@ class Pulse:
         self.DelayedCTTimes = []
         self.DelayedCTAmplitudes = []
         self.PulseAmplitude = 0
-        
 
-
-
-def main():
-    DataLeft = True # DataLeft checks if there is data still left to analyse
-    counter = 0     # keeps track of which data set we're on
-    numsims = 100
+def analyse(startnum, endnum, lock):
+    counter = startnum     # keeps track of which data set we're on
+    numsims = endnum
  
     timeData, template_pulse = dr.reader("londat.csv")
     template_pulse = np.resize(template_pulse, 6)
-
-    fig, (ax_orig) = plt.subplots(1, 1, sharex= True)
 
     # load in the x-data once
 
@@ -50,9 +47,10 @@ def main():
     countCTD = 0
 
     allTimes = np.array([])
+    checkamp = []
 
     # load in y-data sets sequentially 
-    while DataLeft:
+    while counter < numsims:
         
         pulseData = Pulse()
 
@@ -62,7 +60,7 @@ def main():
     # Loading in all data
         # if there is no data stored under that name, we are out of data. stop the loop
         if data == None:
-            DataLeft = False
+            counter = numsims
             break
         # if data is [0] means that data is simply reference data + noise (which we will add here)
         elif np.size(data) == 1:
@@ -121,22 +119,22 @@ def main():
         initguess.append(pulseData.numPromptCT * 167) #amplitude
         initguess.append(0)                     #onset time
         initguess.append(2.0)                   #rise time
-        initguess.append(5.0)                   #rise time long
-        initguess.append(4.0)                   #sharp decay time
+        initguess.append(3.0)                   #rise time long
+        initguess.append(8.0)                   #sharp decay time
         initguess.append(10.0)                  #long decay time                                    
         for i in range(pulseData.numAfterPulses):
             initguess.append(pulseData.afterPulseAmplitudes[i])
             initguess.append(pulseData.afterPulseTimes[i]- 4)     
             initguess.append(2.0)  
-            initguess.append(5.0)                          
-            initguess.append(4.0)                           
+            initguess.append(3.0)                          
+            initguess.append(8.0)                           
             initguess.append(10.0)  
         for i in range(pulseData.numDelayedCT):
             initguess.append(pulseData.DelayedCTAmplitudes[i])
             initguess.append(pulseData.DelayedCTTimes[i] - 4)     
             initguess.append(2.0)  
-            initguess.append(5.0)                          
-            initguess.append(4.0)                          
+            initguess.append(3.0)                          
+            initguess.append(8.0)                          
             initguess.append(10.0) 
 
 
@@ -145,17 +143,16 @@ def main():
         except (RuntimeError, ValueError):
             fitParams = None
 
+        with lock:
+            dataFile = h5py.File("output.h5", 'a')
+            dataFile.create_dataset(f"Parameters{counter}", data = fitParams)
+            dataFile.close()
 
         counter += 1
-        
-        print(f"{counter}: {fitParams}")
     
+    return([countAP, countCT, countCTD, trueAP, trueCT, trueCTD])
 
     
-    print(f"Found AP: {countAP}/{trueAP}")
-    print(f"Found CTP: {countCT}/{trueCT}")
-    print(f"Found CTD: {countCTD}/{trueCTD}")
-    print(allTimes)
 
 
 def calculate_num_peaks(data, template):
@@ -198,6 +195,37 @@ def pulseFitFunc(t, scale, onset, taurise, tauriselong, taushort, taulong):
     pulse = - scale * (np.exp(-(t - onset) / taurise) + np.exp(-(t - onset) / tauriselong) - decay)
     pulse[np.where(t < onset)] = 0.0 # not defined before onset time, set 0
     return pulse
+
+
+def main():
+
+    lock = threading.Lock()
+    ana1_value = []
+    ana2_value = []
+    ana3_value = []
+    ana4_value = []
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        ana1 = executor.submit(analyse, 0, 25, lock)
+        ana2 = executor.submit(analyse, 25, 50, lock)
+        ana3 = executor.submit(analyse, 50, 75, lock)
+        ana4 = executor.submit(analyse, 75, 100, lock)
+        ana1_value = ana1.result()
+        ana2_value = ana2.result()
+        ana3_value = ana3.result()
+        ana4_value = ana4.result()
+
+    trueAP = ana1_value[0] + ana2_value[0] + ana3_value[0] + ana4_value[0]
+    trueCT = ana1_value[1] + ana2_value[1] + ana3_value[1] + ana4_value[1]
+    trueCTD = ana1_value[2] + ana2_value[2] + ana3_value[2] + ana4_value[2]
+    countAP = ana1_value[3] + ana2_value[3] + ana3_value[3] + ana4_value[3]
+    countCT = ana1_value[4] + ana2_value[4] + ana3_value[4] + ana4_value[4]
+    countCTD = ana1_value[5] + ana2_value[5] + ana3_value[5] + ana4_value[5]
+
+    print(f"Found AP: {countAP}/{trueAP}")
+    print(f"Found CTP: {countCT}/{trueCT}")
+    print(f"Found CTD: {countCTD}/{trueCTD}")
+
 
 if __name__ == '__main__':
     main()

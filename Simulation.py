@@ -71,15 +71,12 @@ def main():
          
         # save teh data to the output file
         saveData(spadPulse, afterpulseData, crossTalkData, counter)
-
-        plt.plot(xdata, spadPulse)
         
         # measure just to see how far through teh program is
         counter += 1
         if counter%10000 == 0:
             print(counter)
 
-    plt.show()
 
 #**************************************************************************************
 # add random fluctuations to data
