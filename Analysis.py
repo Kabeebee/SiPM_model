@@ -35,7 +35,7 @@ def analyse(counter, lock):
 
     # load in the x-data once
     with lock:
-        readFile = h5py.File('data.h5', 'r')
+        readFile = h5py.File(r'F:\data.h5', 'r')
         xdata = readFile.get('xdata')
         xdata = np.array(xdata)
         readFile.close()
@@ -53,7 +53,7 @@ def analyse(counter, lock):
     pulseData = Pulse()
     data = 0
     with lock:
-        readFile = h5py.File('data.h5', 'r')
+        readFile = h5py.File(r'F:\data.h5', 'r')
         data = readFile.get("SPADPulse%d" % counter)
         data = np.array(data)
         readFile.close()
@@ -63,7 +63,7 @@ def analyse(counter, lock):
     if np.size(data) == 1:
         
         with lock:
-            readFile = h5py.File('data.h5', 'r')
+            readFile = h5py.File(r'F:\data.h5', 'r')
             refdat = readFile.get("referenceData")
             data = np.array(refdat)
             readFile.close()
@@ -76,7 +76,7 @@ def analyse(counter, lock):
         TruthAP = 0
         TruthCT = 0
         with lock:
-            readFile = h5py.File('data.h5', 'r')
+            readFile = h5py.File(r'F:\data.h5', 'r')
             TruthAP = readFile.get("APData%d" % counter)
             TruthCT = readFile.get("CTData%d" % counter)
             TruthAP = np.array(TruthAP)
@@ -147,15 +147,13 @@ def analyse(counter, lock):
         fitParams, _= curve_fit(pulse_superpositions, xdata, data, p0 = initguess)
     except (RuntimeError, ValueError):
         print(f"Failed to fit pulse {counter}")
-        fitParams = None
+        fitParams = np.array([0])
 
-    print(f"{counter}: {fitParams}")
     # use lock to ensure the therads arenot accessing the file at teh same time and potentially currupting the data
     with lock:
-        if fitParams != None:
-            dataFile = h5py.File("output.h5", 'a')
-            dataFile.create_dataset(f"Parameters{counter}", data = fitParams)
-            dataFile.close()
+        dataFile = h5py.File("output.h5", 'a')
+        dataFile.create_dataset(f"Parameters{counter}", data = fitParams)
+        dataFile.close()
 
     print(f"thread {counter} complete!")
     return([countAP, countCT, countCTD, trueAP, trueCT, trueCTD])
@@ -208,14 +206,14 @@ def main():
     # initialise variables and lock object required for multi threading
     lock = threading.Lock()
     ana1_value = [0, 0, 0, 0, 0, 0]
-    endval = 555
-    startval = 545
+    endval = 100000
+    startval = 99000
     locks = []
 
     for i in range(startval, endval):
         locks.append(lock)
     # run multithread
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         ana = executor.map(analyse, range(startval, endval), locks)
         for i in ana:
             for p in range(0, len(i)):
