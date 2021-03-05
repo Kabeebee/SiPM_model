@@ -146,13 +146,16 @@ def analyse(counter, lock):
     try:
         fitParams, _= curve_fit(pulse_superpositions, xdata, data, p0 = initguess)
     except (RuntimeError, ValueError):
+        print(f"Failed to fit pulse {counter}")
         fitParams = None
 
+    print(f"{counter}: {fitParams}")
     # use lock to ensure the therads arenot accessing the file at teh same time and potentially currupting the data
     with lock:
-        dataFile = h5py.File("output.h5", 'a')
-        dataFile.create_dataset(f"Parameters{counter}", data = fitParams)
-        dataFile.close()
+        if fitParams != None:
+            dataFile = h5py.File("output.h5", 'a')
+            dataFile.create_dataset(f"Parameters{counter}", data = fitParams)
+            dataFile.close()
 
     print(f"thread {counter} complete!")
     return([countAP, countCT, countCTD, trueAP, trueCT, trueCTD])
@@ -205,8 +208,8 @@ def main():
     # initialise variables and lock object required for multi threading
     lock = threading.Lock()
     ana1_value = [0, 0, 0, 0, 0, 0]
-    endval = 10
-    startval = 0
+    endval = 555
+    startval = 545
     locks = []
 
     for i in range(startval, endval):
