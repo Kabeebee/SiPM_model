@@ -5,7 +5,7 @@ import h5py
 import matplotlib.pyplot as plt
 
 # Simulation Parameters
-NUMSIMS = 100
+NUMSIMS = 1000
 deadTime = 1000
 recoveryTime = 200
 crossTalkProbTotal = 0.25
@@ -69,13 +69,17 @@ def main():
         # add the electrical noise (done so that looks visually correct, as would be very system dependent)
         randNoise(spadPulse, 2)
          
-        # save teh data to the output file
+        #save the data to the output file
         saveData(spadPulse, afterpulseData, crossTalkData, counter)
+
+        #plt.plot(xdata, spadPulse)
         
         # measure just to see how far through teh program is
         counter += 1
         if counter%10000 == 0:
             print(counter)
+
+    plt.show()
 
 
 #**************************************************************************************

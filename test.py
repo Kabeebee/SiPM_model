@@ -6,14 +6,35 @@ import numpy as np
 from scipy.optimize import curve_fit
 
 def getAP():
-    readFile = h5py.File('output.h5', 'r')
+    readFile = h5py.File('mergedData.h5', 'r')
     amps = []
-    for i in range(0,100):
+    mid = 0
+    ml = 0
+    mr = 0
+    l = 0
+    r = 0
+    for i in range(0, 100000):
         spad = readFile.get(f"Parameters{i}")
         spad = np.array(spad)
-        amps.append(spad[0])
+        if np.size(spad) > 1:
+            if spad[0] > 165 and spad[0] < 175:
+                amps.append(spad[0])
+                mid += 1
+            if spad[0] > 155 and spad[0] < 165:
+                amps.append(spad[0])
+                ml += 1
+            if spad[0] > 175 and spad[0] < 185:
+                amps.append(spad[0])
+                mr += 1
+            if spad[0] > 145 and spad[0] < 155:
+                amps.append(spad[0])
+                l += 1
+            if spad[0] > 185 and spad[0] < 195:
+                amps.append(spad[0])
+                r += 1
 
-    plt.scatter(range(100), amps)
+
+    plt.scatter(range(5), [l, ml, mid, mr, r])
     plt.show()
 
 def plotAP(): 
@@ -49,7 +70,7 @@ def plotpulse(xval,yval,pulse1,pulse2):
     fig = plt.figure()
     axis1 = fig.add_axes([0.12, 0.1, 0.85, 0.85]) # main axes
     axis1.plot(xval, yval, 'r-')
-    axis1.plot(xval, pulse1, 'b-')
+    #axis1.plot(xval, pulse1, 'b-')
     axis1.plot(xval, pulse2, 'g-')
     axis1.set_title('Dark Matter detector pulse', size=12)
     axis1.set_xlabel('Time [ns]', size=12)
@@ -74,7 +95,7 @@ taushort =  4.21741858e+00
 taulong = 1.01444488e+01
 
 
-scale2 = 1.58923801e+02
+scale2 = 1.25923801e+02
 onset2 = -6.69606635e-03
 taurise2 = 1.19690101e+00
 tauriselong2 = 2.54068511e+00
@@ -90,7 +111,7 @@ pulse[np.where(t < onset)] = 0.0
 temp3  = np.exp(-(t - onset2) / taushort2)
 temp4  = np.exp(-(t - onset2 ) / taulong2)
 decay2 = temp3 + temp4
-pulse2 = -scale2 * (np.exp(-(t - onset2) / taurise2) + np.exp(-(t - onset2) / tauriselong2)- decay2)
+pulse2 = -scale2 * (np.exp(-(t - onset2) / taurise2) - decay2)
 pulse2[np.where(t < onset2)] = 0.0
 
 
