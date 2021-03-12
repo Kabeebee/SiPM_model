@@ -108,7 +108,7 @@ def PlotAll():
 
     print(l)
 
-    plt.ylabel("Voltage (mv)")
+    plt.ylabel("Voltage (mv) tester")
     plt.xlabel("Time (ns)")
     plt.show()
 
