@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import h5py
-
+import Datareader as dr
 
 def ampVsTime():
     fig, ax = plt.subplots()
@@ -82,14 +82,47 @@ def APAmps():
     plt.show()
 
 
+def singlepulse():
+    xvals, yvals = dr.reader("londat.csv")
+    plt.xlabel("Time (ns)")
+    plt.ylabel(u"Voltage (mv)")
+    plt.yticks(range(0, 180, 10))
+    plt.xticks(list(range(0, 180, 10)) + [10])
+    plt.plot(xvals, yvals, "r", label="SPAD Pulse")
+    plt.plot([3.6]* 175, range(0, 175), "b--", label="t = 3.6ns")
+    plt.legend()
+    plt.show()
+
+
+def PlotAll():
+    fig = plt.figure()
+    ax = fig.add_subplot()
+    file = h5py.File(r"F:\data.h5")
+    l = 0
+    for i in range(0, 100000, 100):
+        data = file.get(f"SPADPulse{i}")
+        data = np.array(data)
+        if np.size(data) > 1:
+            plt.plot(range(0, 150000), data)
+            l +=1
+
+    print(l)
+
+    plt.ylabel("Voltage (mv)")
+    plt.xlabel("Time (ns)")
+    plt.show()
+
+        
+
 
 
 def main():
     #ampVsTime()
     #APAtTime()
     #ampdistro()
-    APAmps()
-
+    #APAmps()
+    #singlepulse()
+    PlotAll()
 
 if __name__ == "__main__":
     main()
