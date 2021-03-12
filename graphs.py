@@ -97,7 +97,8 @@ def singlepulse():
 def PlotAll():
     fig = plt.figure()
     ax = fig.add_subplot()
-    file = h5py.File(r"F:\data.h5")
+    ins = ax.inset_axes([0.55, 0.55, 0.38, 0.38])
+    file = h5py.File("data.h5")
     l = 0
     for i in range(0, 100000, 100):
         data = file.get(f"SPADPulse{i}")
@@ -105,6 +106,7 @@ def PlotAll():
         if np.size(data) > 1:
             plt.plot(range(0, 150000), data)
             l +=1
+            ins.plot(range(0, 150, data))
 
     print(l)
 
