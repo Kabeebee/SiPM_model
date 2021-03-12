@@ -149,13 +149,14 @@ def analyse(counter, lock):
         print(f"Failed to fit pulse {counter}")
         fitParams = np.array([0])
 
-    # use lock to ensure the therads arenot accessing the file at teh same time and potentially currupting the data
+    #use lock to ensure the therads arenot accessing the file at teh same time and potentially currupting the data
     with lock:
-        dataFile = h5py.File("output.h5", 'a')
-        dataFile.create_dataset(f"Parameters{counter}", data = fitParams)
-        dataFile.close()
+       dataFile = h5py.File("outputconnor.h5", 'a')
+       dataFile.create_dataset(f"Parameters{counter}", data = fitParams)
+       dataFile.close()
 
-    print(f"thread {counter} complete!")
+    if counter%10 == 0:
+        print(f"thread {counter} complete!")
     return([countAP, countCT, countCTD, trueAP, trueCT, trueCTD])
 
 def calculate_num_peaks(data, template):
@@ -199,21 +200,20 @@ def pulseFitFunc(t, scale, onset, taurise, tauriselong, taushort, taulong):
     pulse[np.where(t < onset)] = 0.0 # not defined before onset time, set 0
     return pulse
 
-
 def main():
 
     t = time.time()
     # initialise variables and lock object required for multi threading
     lock = threading.Lock()
     ana1_value = [0, 0, 0, 0, 0, 0]
-    endval = 100000
-    startval = 99000
+    endval =87000
+    startval = 80000
     locks = []
 
     for i in range(startval, endval):
         locks.append(lock)
     # run multithread
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
         ana = executor.map(analyse, range(startval, endval), locks)
         for i in ana:
             for p in range(0, len(i)):
