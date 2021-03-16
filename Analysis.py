@@ -144,10 +144,13 @@ def analyse(counter, lock):
 
     #try-except to fit data
     try:
-        fitParams, _= curve_fit(pulse_superpositions, xdata, data, p0 = initguess)
+        fitParams, fitcov = curve_fit(pulse_superpositions, xdata, data, p0 = initguess)
+        print(fitParams, end="\n\n\n")
+        print(fitcov)
     except (RuntimeError, ValueError):
         print(f"Failed to fit pulse {counter}")
         fitParams = np.array([0])
+
 
     #use lock to ensure the therads arenot accessing the file at teh same time and potentially currupting the data
     with lock:
@@ -206,8 +209,8 @@ def main():
     # initialise variables and lock object required for multi threading
     lock = threading.Lock()
     ana1_value = [0, 0, 0, 0, 0, 0]
-    endval =87000
-    startval = 80000
+    endval = 343
+    startval = 342
     locks = []
 
     for i in range(startval, endval):

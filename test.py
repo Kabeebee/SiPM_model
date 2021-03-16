@@ -65,56 +65,67 @@ def plotAP():
 Detector pulses script
 '''
 
-def plotpulse(xval,yval,pulse1,pulse2):
+def calcchi():
+    readFile = h5py.File(r'F:\data.h5', 'r')
+    t = readFile.get("xdata")
+    pulseData22 = readFile.get("SPADPulse342")
+    pulseData22 = np.array(pulseData22)
+    t = np.array(t)
+
+
+def getParams(Num):
+
+    file = h5py.File("mergedData.h5")
+    params = file.get(f"Parameters{Num}")
+    params = np.array(params) 
+    file.close()
+    print(params)
+
+def plotpulse(xval,yval,pulse1):
     ''' plot with insert '''
     fig = plt.figure()
     axis1 = fig.add_axes([0.12, 0.1, 0.85, 0.85]) # main axes
     axis1.plot(xval, yval, 'r-')
-    #axis1.plot(xval, pulse1, 'b-')
-    axis1.plot(xval, pulse2, 'g-')
-    axis1.set_title('Dark Matter detector pulse', size=12)
-    axis1.set_xlabel('Time [ns]', size=12)
-    axis1.set_ylabel('Bias [mV]', size=12)
-    axis1.set_xlim(-10, 500)
+    axis1.plot(xval, pulse1, 'g-')
+    axis1.set_xlabel('Time (ns)')
+    axis1.set_ylabel('Voltage (mV)')
+    axis1.set_xlim(-10, 200)
+    axis1.set_ylim(-3, 175)
     
     plt.show()
     return
 
-readFile = h5py.File('data.h5', 'r')
+readFile = h5py.File(r'F:\data.h5', 'r')
 t = readFile.get("xdata")
-pulseData22 = readFile.get("referenceData")
+pulseData22 = readFile.get("SPADPulse29068")
 pulseData22 = np.array(pulseData22)
 t = np.array(t)
 
+params = [ 1.62438867e+02, -1.27802305e-02,  1.19408058e+00,  2.77489857e+00,
+  7.68660089e+00,  1.17870762e+01,  2.88421903e+02,  9.21718780e+01,
+  1.79194954e+00,  7.88923565e-01,  1.00025321e+00,  1.02269090e+01]
 
-scale = 3.21553988e+02
-onset = -2.54059274e-06
-taurise = 1.65380240e+00
-tauriselong = 4.92097753e+00
-taushort =  4.21741858e+00
-taulong = 1.01444488e+01
+superpos = [0] * 150000
 
+for i in range(0, int(len(params)/6)):
+    temp1  = np.exp(-(t - (params[6 * i + 1])) / params[6 *i + 4])
+    temp2  = np.exp(-(t - (params[6 *i + 1])) / params[6 *i + 5])
+    decay = temp1 + temp2
+    pulse = -params[6 *i] * (np.exp(-(t - (params[6 *i + 1])) / params[6 *i + 2]) + np.exp(-(t - (params[6 *i + 1])) / params[6 *i + 3]) - decay)
+    pulse[np.where(t < params[6 *i + 1])] = 0.0
 
-scale2 = 1.25923801e+02
-onset2 = -6.69606635e-03
-taurise2 = 1.19690101e+00
-tauriselong2 = 2.54068511e+00
-taushort2 =  7.61608389e+00
-taulong2 = 1.19584934e+01
-
-temp1  = np.exp(-(t - (onset)) / taushort)
-temp2  = np.exp(-(t - (onset)) / taulong)
-decay = temp1 + temp2
-pulse = -scale * (np.exp(-(t - (onset)) / taurise) + np.exp(-(t - (onset)) / tauriselong) - decay)
-pulse[np.where(t < onset)] = 0.0
-
-temp3  = np.exp(-(t - onset2) / taushort2)
-temp4  = np.exp(-(t - onset2 ) / taulong2)
-decay2 = temp3 + temp4
-pulse2 = -scale2 * (np.exp(-(t - onset2) / taurise2) - decay2)
-pulse2[np.where(t < onset2)] = 0.0
+    superpos = superpos + pulse
 
 
 
-getAP()
+
+residual = []
+residual = (superpos - pulseData22) ** 2
+chi = sum(residual) / 4
+rchi = chi / (150000 - 6)
+print(rchi)
+
+getParams(29068)
+
+plotpulse(t, pulseData22, superpos)
 

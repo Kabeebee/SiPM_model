@@ -6,8 +6,8 @@ a monte-carlo simulation of SiPM pulse types and various associated noise contri
 ## Afterpulse truth data:
 0 : Number of afterpulses
 ## followed by pairs of:
-1 : Amplitude of afterpulse
-2 : Position of afterpulses
+1 : Position of afterpulses
+2 : Amplitude of afterpulse
 
 ## Crosstalk truth data
 0 : Number of prompt cross talk pulses
@@ -19,11 +19,11 @@ followed by:
 
 0: Scale
 1: onset time
-2: rise time constant
-3: short decay time constant
-4: long decay time constant
-5: a (left root of quadratic)
-6: b (right root of quadratic)
+2: short rise time constant
+3: Long rise time constant
+4: short decay time constant
+5: long decay time constant
+
 
 # data found format
 

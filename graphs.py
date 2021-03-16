@@ -4,27 +4,28 @@ import h5py
 import Datareader as dr
 
 def ampVsTime():
-    fig, ax = plt.subplots()
+    #fig, ax = plt.subplots()
     
     amps = []
     times = []
     file = h5py.File("mergedData.h5")
-    for i in range(0, 100000):
-        
+    for i in range(0, 100000, 20):
         data = file.get(f"Parameters{i}")
         data = np.array(data)
         if np.size(data) > 1:
             maxL = np.size(data)/6
             for p in range(0, int(maxL)):
-                amps.append(data[p*6]/167)
+                amps.append(data[p*6])
                 times.append(data[p*6 + 1])
-        file.close()    
+            
     
     file.close()
-    plt.xscale("log")
-    plt.xlim([0, 200000])
-    ax.scatter(times, amps)
-    plt.show()
+    #plt.xscale("log")
+    #plt.xlim([0, 200000])
+    #ax.scatter(times, amps)
+    #plt.show()
+    return(times, amps)
+   
 
 def APAtTime():
     fig, ax = plt.subplots()
@@ -54,10 +55,14 @@ def ampdistro():
         
         data = file.get(f"Parameters{i}")
         data = np.array(data)
-        if np.size(data) > 1:
-            amps.append(data[0])
+        if np.size(data) > 6:
+            if data[7] < 999 and data[6] > 275 and data[6] < 300:
+                print(i)
 
-    ax.hist(amps, range(120, 540, 5))
+    plt.plot([169]*230, range(0, 2300, 10), "r--", label="True Mean Value" )
+    ax.hist(amps, range(120, 300, 5), color="b")
+    plt.ylabel("Number of Pulses")
+    plt.xlabel("Amplitude (mv)")
     plt.show()
 
 
@@ -100,7 +105,7 @@ def PlotAll():
     ins = ax.inset_axes([0.55, 0.55, 0.38, 0.38])
     file = h5py.File(r"F:\data.h5")
     l = 0
-    for i in range(0, 100000, 100):
+    for i in range(0, 100000, 50):
         data = file.get(f"SPADPulse{i}")
         data = np.array(data)
         if np.size(data) > 1:
@@ -115,16 +120,64 @@ def PlotAll():
     plt.show()
 
         
+def truthvsreal():
+    amps = []
+    times = []
+    amps2 = []
+    times2 = []
+    file = h5py.File(r"F:\data.h5")
+    for i in range(0, 100000, 20):
+        try:
 
+            data = file.get(f"APData{i}")
+            data = np.array(data)
+            
+            for p in range(0, int(data[0])):
+                amps.append(data[2* p + 2] * 167)
+                times.append(data[2* p + 1])
+                
+                
+            data2 = file.get(f"CTData{i}")
+            data2 = np.array(data2)
+            amps.append((1 + data2[0]) * 167 + np.random.normal(0 , 2, 1))
+            times.append(0)
+
+            for p in range(0, data2[1]):
+                amps.append(167 + np.random.normal(0 , 2, 1))
+                times.append(data2[p + 2])
+            
+            if np.size(data2) < 1:
+                amps.append(167 + np.random.normal(0 , 2, 1))
+                times.append(0)
+            
+        except:
+            amps.append(167 + np.random.normal(0 , 2, 1))
+            times.append(0)
+
+    file.close()
+
+    fig, ax = plt.subplots()
+    
+    plt.xscale("log")
+    plt.xlim([5, 200000])
+    plt.xlabel("Time (ns)")
+    plt.ylabel("Voltage (mv)")
+    times2, amps2 = ampVsTime()
+    ax.scatter(times2, amps2, c="k", marker=".")
+    ax.scatter(times, amps, c="r", marker="x", linewidths=0.75)
+    plt.show()
+
+        
 
 
 def main():
     #ampVsTime()
     #APAtTime()
-    #ampdistro()
+    ampdistro()
     #APAmps()
     #singlepulse()
-    PlotAll()
+    #PlotAll()
+    #truthvsreal()
 
 if __name__ == "__main__":
     main()
